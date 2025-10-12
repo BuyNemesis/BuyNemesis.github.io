@@ -1,0 +1,1 @@
+Screenshots folder placeholder. Add screenshots here to show in the Features page.

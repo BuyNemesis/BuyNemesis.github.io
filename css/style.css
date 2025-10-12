@@ -1,0 +1,20 @@
+/* Main stylesheet copied from getnight.wtf/style.css (truncated) */
+
+:root {
+    --primary: #E8BBF9;
+    --primary-mid: #C38EE1;
+    --primary-dark: #8E57B5;
+    --text: #F3E6FB;
+    --text-muted: #BFA2D6;
+    --bg-dark: #000000;
+    --bg-card: #0a0a0a;
+    --border-color: rgba(232, 187, 249, 0.1);
+    --hover-border: rgba(232, 187, 249, 0.3);
+    --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+}
+
+* { box-sizing: border-box; }
+
+body { background: var(--bg-dark); color: var(--text); font-family: 'Inter', sans-serif; }
+
+/* This repo contains the original full CSS at getnight.wtf/style.css. */
