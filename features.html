@@ -1,1 +1,427 @@
-(placeholder) Please use the features.html in getnight.wtf/ as the authoritative version. The full features file has complex inline CSS and JS and was copied into the site-frontend folder automatically during the export process.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nemesis Features - Interactive Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: -2;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(232, 187, 249, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #E8BBF9;
+            text-shadow: 0 0 20px rgba(232, 187, 249, 0.5);
+        }
+
+        .nav-back {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-back:hover {
+            color: #E8BBF9;
+        }
+
+        /* Main Container */
+        .features-container {
+            display: flex;
+            height: 100vh;
+            padding-top: 80px;
+        }
+
+        /* Sidebar */
+        .features-sidebar {
+            width: 350px;
+            background: rgba(10, 10, 10, 0.95);
+            border-right: 1px solid rgba(232, 187, 249, 0.1);
+            overflow-y: auto;
+            padding: 2rem 0;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #E8BBF9;
+            padding: 0 2rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-item {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .feature-item:hover {
+            background: rgba(232, 187, 249, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            border-left-color: rgba(232, 187, 249, 0.3);
+        }
+
+        .feature-item.active {
+            background: rgba(232, 187, 249, 0.1);
+            color: #E8BBF9;
+            border-left-color: #E8BBF9;
+            font-weight: 500;
+        }
+
+        /* Content Area */
+        .features-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .feature-display {
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .feature-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(232, 187, 249, 0.3);
+        }
+
+        .feature-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .feature-image {
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background: rgba(232, 187, 249, 0.05);
+            border: 1px solid rgba(232, 187, 249, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .placeholder-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Navigation Buttons */
+        .feature-nav {
+            display: flex;
+            gap: 1rem;
+            margin-top: 3rem;
+            justify-content: center;
+        }
+
+        .nav-button {
+            background: transparent;
+            border: 1px solid rgba(232, 187, 249, 0.3);
+            color: rgba(232, 187, 249, 0.8);
+            padding: 12px 30px;
+            font-size: 14px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: rgba(232, 187, 249, 0.1);
+            border-color: rgba(232, 187, 249, 0.6);
+            color: #E8BBF9;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .features-container {
+                flex-direction: column;
+            }
+
+            .features-sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+
+            .feature-title {
+                font-size: 2rem;
+            }
+
+            .features-content {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Fade animation */
+        .feature-display {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">nemesis</div>
+        <a href="index.html" class="nav-back">← Back to Home</a>
+    </nav>
+
+    <div class="features-container">
+        <aside class="features-sidebar">
+            <h3 class="sidebar-title">All Features</h3>
+            <ul class="feature-list" id="feature-list">
+                <!-- Features will be populated by JavaScript -->
+            </ul>
+        </aside>
+
+        <main class="features-content">
+            <div class="feature-display" id="feature-display">
+                <!-- Feature content will be populated by JavaScript -->
+            </div>
+            <div class="feature-nav">
+                <button class="nav-button" id="prev-btn" onclick="previousFeature()">← Previous</button>
+                <button class="nav-button" id="next-btn" onclick="nextFeature()">Next →</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const features = [
+            {
+                name: "Main Menu",
+                title: "Customizable Interface",
+                description: "Fully customizable UI for a unique, streamlined experience. Adjust colors, layouts, and settings to match your playstyle.",
+                image: "" // Add image path here
+            },
+            {
+                name: "FastShoot",
+                title: "Rapid Fire Mechanics",
+                description: "Fire faster than ever with our optimized shooting mechanics. Gain the edge in combat with lightning-fast fire rates.",
+                image: ""
+            },
+            {
+                name: "AutoKill",
+                title: "Automatic Elimination",
+                description: "Automatically target and eliminate players with precision. Advanced targeting system ensures accurate hits every time.",
+                image: ""
+            },
+            {
+                name: "ESP Features",
+                title: "Enhanced Visual Awareness",
+                description: "Advanced ESP capabilities for complete situational awareness. See through walls, track players, and never be caught off guard.",
+                image: ""
+            },
+            {
+                name: "Silent Aim",
+                title: "Undetectable Targeting",
+                description: "Hit your targets without moving your crosshair. Silent aim provides natural-looking accuracy that keeps you under the radar.",
+                image: ""
+            },
+            {
+                name: "Triggerbot",
+                title: "Automatic Firing",
+                description: "Automatically fire when your crosshair is on target. Instant reaction times that no human can match.",
+                image: ""
+            },
+            {
+                name: "Speed Hacks",
+                title: "Movement Enhancement",
+                description: "Move faster than your opponents with customizable speed multipliers. Navigate the map with incredible agility.",
+                image: ""
+            },
+            {
+                name: "Fly Mode",
+                title: "Unrestricted Movement",
+                description: "Soar through the map with full flight capabilities. Access any location and gain tactical advantages.",
+                image: ""
+            },
+            {
+                name: "Infinite Ammo",
+                title: "Unlimited Ammunition",
+                description: "Never run out of bullets. Keep firing without ever needing to reload or resupply.",
+                image: ""
+            },
+            {
+                name: "God Mode",
+                title: "Invulnerability",
+                description: "Become invincible and take no damage. Dominate matches without fear of elimination.",
+                image: ""
+            },
+            {
+                name: "Teleport",
+                title: "Instant Transportation",
+                description: "Teleport anywhere on the map instantly. Perfect positioning at the click of a button.",
+                image: ""
+            },
+            {
+                name: "No Recoil",
+                title: "Perfect Accuracy",
+                description: "Eliminate weapon recoil for laser-accurate shots. Every bullet lands exactly where you aim.",
+                image: ""
+            }
+        ];
+
+        let currentFeatureIndex = 0;
+
+        function renderFeatureList() {
+            const list = document.getElementById('feature-list');
+            list.innerHTML = features.map((feature, index) => 
+                `<li class="feature-item ${index === 0 ? 'active' : ''}" onclick="showFeature(${index})">${feature.name}</li>`
+            ).join('');
+        }
+
+        function showFeature(index) {
+            currentFeatureIndex = index;
+            const feature = features[index];
+            const display = document.getElementById('feature-display');
+            
+            display.style.animation = 'none';
+            setTimeout(() => {
+                display.style.animation = 'fadeIn 0.5s ease-in-out';
+            }, 10);
+            
+            display.innerHTML = `
+                <h1 class="feature-title">${feature.title}</h1>
+                <p class="feature-description">${feature.description}</p>
+                <div class="feature-image">
+                    ${feature.image ? 
+                        `<img src="${feature.image}" alt="${feature.name}">` : 
+                        `<div class="placeholder-text">Screenshot Coming Soon<br><span style="font-size: 0.8rem; opacity: 0.6;">Feature: ${feature.name}</span></div>`
+                    }
+                </div>
+            `;
+
+            // Update sidebar active state
+            document.querySelectorAll('.feature-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').disabled = index === features.length - 1;
+        }
+
+        function nextFeature() {
+            if (currentFeatureIndex < features.length - 1) {
+                showFeature(currentFeatureIndex + 1);
+            }
+        }
+
+        function previousFeature() {
+            if (currentFeatureIndex > 0) {
+                showFeature(currentFeatureIndex - 1);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextFeature();
+            if (e.key === 'ArrowLeft') previousFeature();
+        });
+
+        // Initialize
+        renderFeatureList();
+        showFeature(0);
+    </script>
+</body>
+</html>
