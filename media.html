@@ -138,6 +138,25 @@
             margin-bottom: 3rem;
         }
 
+        /* Tabs */
+        .tab-btn {
+            background: transparent;
+            border: 1px solid rgba(232,187,249,0.12);
+            color: rgba(255,255,255,0.8);
+            padding: 8px 16px;
+            margin: 0 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.18s ease;
+        }
+        .tab-btn[aria-pressed="true"] {
+            background: linear-gradient(135deg, #E8BBF9, #C38EE1);
+            color: #000;
+            border-color: transparent;
+            box-shadow: 0 6px 22px rgba(142,87,181,0.18);
+        }
+
         .video-card {
             background: #0a0a0a;
             border: 1px solid rgba(232, 187, 249, 0.15);
@@ -489,6 +508,11 @@
             <p class="page-subtitle">Watch nemesis in action - gameplay clips from our community</p>
         </div>
 
+        <div style="text-align:center; margin-bottom: 24px;">
+            <button id="tab-videos" class="tab-btn" aria-pressed="true">Videos</button>
+            <button id="tab-photos" class="tab-btn" aria-pressed="false">Photos</button>
+        </div>
+
         <div id="video-grid" class="video-grid">
             <!-- Loading state -->
             <div class="loading-container" id="loading">
@@ -503,14 +527,16 @@
     </div>
 
     <script>
-        // This will be updated to fetch from backend API
-        // For now, using placeholder data structure
-        let allVideos = [];
-        let displayedVideos = 0;
-        const videosPerPage = 9;
+    // This will be updated to fetch from backend API
+    // For now, using placeholder data structure
+    let allVideos = [];
+    let allPhotos = [];
+    let displayedCount = 0;
+    const itemsPerPage = 9;
+    let activeTab = 'videos'; // 'videos' or 'photos'
 
         // Fetch videos from backend API
-        async function fetchVideosFromDiscord() {
+        async function fetchMediaFromDiscord() {
             try {
                 // Replace with your actual Render backend URL
                 const API_URL = 'https://nemesis-backend-yv3w.onrender.com/api/media';
@@ -522,14 +548,15 @@
                 }
                 
                 const data = await response.json();
-                return data.videos || [];
+                // Expecting shape: { videos: [...], photos: [...] }
+                return data;
             } catch (error) {
                 console.error('Error fetching videos from API:', error);
                 throw error;
             }
         }
 
-        function createVideoCard(video) {
+    function createVideoCard(video) {
             let videoContent = '';
             
             if (video.type === 'mp4' && video.videoUrl) {
@@ -572,6 +599,23 @@
             `;
         }
 
+        function createPhotoCard(photo) {
+            return `
+                <div class="video-card">
+                    <div class="video-wrapper" style="padding-bottom:66%;">
+                        <img src="${photo.imageUrl}" alt="${photo.title || 'Screenshot'}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;" />
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">${photo.title || 'Screenshot'}</h3>
+                        <div class="video-meta">
+                            ${photo.author ? `<span class="video-author">👤 ${photo.author}</span>` : ''}
+                            ${photo.date ? `<span class="video-date">${formatDate(photo.date)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             const now = new Date();
@@ -584,30 +628,34 @@
             return date.toLocaleDateString();
         }
 
-        function displayVideos(videos) {
+        function displayItems() {
             const grid = document.getElementById('video-grid');
             const loadMoreContainer = document.getElementById('load-more-container');
-            
-            if (videos.length === 0) {
+            let items = activeTab === 'videos' ? allVideos : allPhotos;
+
+            if (!items || items.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-icon">🎬</div>
-                        <p>No clips available yet. Check back soon!</p>
+                        <div class="empty-icon">📁</div>
+                        <p>No items available yet. Check back soon!</p>
                     </div>
                 `;
+                loadMoreContainer.style.display = 'none';
                 return;
             }
 
-            const videosToShow = videos.slice(0, displayedVideos + videosPerPage);
-            displayedVideos = videosToShow.length;
+            const toShow = items.slice(0, displayedCount + itemsPerPage);
+            displayedCount = toShow.length;
 
-            grid.innerHTML = videosToShow.map(video => createVideoCard(video)).join('');
-
-            // Attach custom lightweight controls for MP4 videos (prevents native overlay scrim)
-            attachCustomVideoControls();
+            if (activeTab === 'videos') {
+                grid.innerHTML = toShow.map(video => createVideoCard(video)).join('');
+                attachCustomVideoControls();
+            } else {
+                grid.innerHTML = toShow.map(photo => createPhotoCard(photo)).join('');
+            }
 
             // Show/hide load more button
-            if (displayedVideos < videos.length) {
+            if (displayedCount < items.length) {
                 loadMoreContainer.style.display = 'block';
             } else {
                 loadMoreContainer.style.display = 'none';
@@ -615,41 +663,74 @@
         }
 
         function loadMoreVideos() {
-            displayVideos(allVideos);
+            displayItems();
         }
 
         async function initializeMediaPage() {
             try {
-                allVideos = await fetchVideosFromDiscord();
-                displayVideos(allVideos);
-                
+                const data = await fetchMediaFromDiscord();
+                // accept both { videos: [], photos: [] } and legacy array of videos
+                if (Array.isArray(data)) {
+                    allVideos = data;
+                    allPhotos = [];
+                } else {
+                    allVideos = data.videos || [];
+                    allPhotos = data.photos || [];
+                }
+
+                // default state
+                activeTab = 'videos';
+                displayedCount = 0;
+                setActiveTabUI();
+                displayItems();
+
                 // Enable audio on all video elements after they're loaded
                 setTimeout(() => {
                     document.querySelectorAll('video').forEach(video => {
-                        // Ensure volume is set
                         video.volume = 1.0;
                         video.muted = false;
-                        
-                        // Log for debugging
                         video.addEventListener('loadedmetadata', () => {
-                            console.log('Video loaded:', video.src, 'Has audio:', video.mozHasAudio || video.webkitAudioDecodedByteCount > 0);
+                            console.log('Video loaded:', video.src);
                         });
                     });
                 }, 500);
             } catch (error) {
-                console.error('Error loading videos:', error);
+                console.error('Error loading media:', error);
                 const grid = document.getElementById('video-grid');
                 grid.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
-                        <p>Failed to load clips. Please try again later.</p>
+                        <p>Failed to load media. Please try again later.</p>
                     </div>
                 `;
             }
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initializeMediaPage);
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMediaPage();
+
+            // Tab buttons
+            document.getElementById('tab-videos').addEventListener('click', () => {
+                if (activeTab === 'videos') return;
+                activeTab = 'videos';
+                displayedCount = 0;
+                setActiveTabUI();
+                displayItems();
+            });
+            document.getElementById('tab-photos').addEventListener('click', () => {
+                if (activeTab === 'photos') return;
+                activeTab = 'photos';
+                displayedCount = 0;
+                setActiveTabUI();
+                displayItems();
+            });
+        });
+
+        function setActiveTabUI() {
+            document.getElementById('tab-videos').setAttribute('aria-pressed', activeTab === 'videos');
+            document.getElementById('tab-photos').setAttribute('aria-pressed', activeTab === 'photos');
+        }
 
         // Custom controls: attach lightweight overlay and click handlers to MP4 videos
         function attachCustomVideoControls() {
