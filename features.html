@@ -398,12 +398,22 @@
 
             // Update navigation buttons
             document.getElementById('prev-btn').disabled = index === 0;
-            document.getElementById('next-btn').disabled = index === features.length - 1;
+            // If we're at the last feature, change Next to "Back to Start"
+            const nextBtn = document.getElementById('next-btn');
+            if (index === features.length - 1) {
+                nextBtn.textContent = 'Back to Start';
+            } else {
+                nextBtn.textContent = 'Next →';
+            }
         }
 
         function nextFeature() {
             if (currentFeatureIndex < features.length - 1) {
                 showFeature(currentFeatureIndex + 1);
+            } else {
+                // Wrap to start and scroll to top
+                showFeature(0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 

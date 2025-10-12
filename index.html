@@ -619,9 +619,9 @@
             margin-right: 10px;
         }
 
-        /* Purchase Button */
+        /* Purchase Button with smooth gradient crossfade */
         .purchase-btn {
-            background: linear-gradient(135deg, #E8BBF9, #C38EE1, #8E57B5);
+            background: transparent; /* gradients provided by pseudo-elements */
             border: none;
             color: #000000;
             padding: 16px 40px;
@@ -630,19 +630,32 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             text-decoration: none;
             display: inline-block;
             position: relative;
             width: 100%;
-            box-shadow: 0 4px 15px rgba(142, 87, 181, 0.4);
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(142, 87, 181, 0.4); /* glow */
         }
 
-        .purchase-btn:hover {
-            background: linear-gradient(135deg, #C38EE1, #8E57B5, #E8BBF9);
-            box-shadow: 0 6px 20px rgba(142, 87, 181, 0.6);
-            transform: translateY(-2px);
+        /* base and hover gradients as layered pseudo-elements (crossfade only) */
+        .purchase-btn::before,
+        .purchase-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            transition: opacity 0.45s ease;
+            pointer-events: none;
         }
+        .purchase-btn::before { background: linear-gradient(135deg, #E8BBF9, #C38EE1, #8E57B5); opacity: 1; }
+        .purchase-btn::after  { background: linear-gradient(135deg, #C38EE1, #8E57B5, #E8BBF9); opacity: 0; }
+
+        /* On hover crossfade gradient and restore glow + slight lift */
+        .purchase-btn:hover::before { opacity: 0; }
+        .purchase-btn:hover::after  { opacity: 1; }
+        .purchase-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(142, 87, 181, 0.6); }
 
         /* Registration/Login Section */
         .auth-section {
@@ -1377,8 +1390,7 @@
         if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
         if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
         return then.toLocaleDateString();
-
-
+    }
 
     function updateReviewDisplay() {
         const grid = document.getElementById('reviews-grid');
@@ -1426,7 +1438,13 @@
 
 
     async function updateReviews() {
-
+        // placeholder: actual implementation pulls reviews from API
+        try {
+            // fetch and update reviews here
+        } catch (err) {
+            console.error('Failed to update reviews', err);
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         updateReviews();
