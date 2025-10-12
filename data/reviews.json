@@ -1,0 +1,23 @@
+{
+  "reviews": [
+    {
+      "author": { "username": "Zero", "avatar": "assets/screenshots/README.md" },
+      "rating": 5,
+      "content": "Best external I've used — works flawlessly.",
+      "timestamp": "2025-09-01T12:00:00Z"
+    },
+    {
+      "author": { "username": "Mira", "avatar": null },
+      "rating": 4,
+      "content": "Great support and frequent updates.",
+      "timestamp": "2025-08-21T08:30:00Z"
+    },
+    {
+      "author": { "username": "Anon", "avatar": null },
+      "rating": 5,
+      "content": "Highly recommended.",
+      "timestamp": "2025-07-11T18:45:00Z"
+    }
+  ],
+  "hasMore": false
+}

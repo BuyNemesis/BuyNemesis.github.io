@@ -66,17 +66,23 @@
       <button id="new-note" style="padding:10px 14px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;color:#000;font-weight:700">New</button>
     </section>
     <section class="notes-list" id="notes">
-      <!-- notes will be populated from the backend (/api/patchnotes) -->
+      <!-- notes will be populated from your deployed backend at Render -->
     </section>
     <div id="empty" class="empty" style="display:none">No patch notes found.</div>
   </main>
   <footer>nemesis — changelog</footer>
   <script>
-    // Fetch patch notes from backend and render. Keep local 'New' scaffold client-side.
-    document.addEventListener('DOMContentLoaded', ()=>{
+    // Client fetch for patchnotes from the deployed backend.
+    // It will try the Render URL and gracefully fallback if unavailable.
+    (function(){
+      const BACKEND = 'https://nemesis-backend-yv3w.onrender.com/api/patchnotes';
       const notesEl = document.getElementById('notes');
       const search = document.getElementById('search');
       const empty = document.getElementById('empty');
+
+      function escapeHtml(s){
+        return (s||'').toString().replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" })[c]);
+      }
 
       function updateEmpty(){
         const any = notesEl.querySelectorAll('.note');
@@ -94,52 +100,70 @@
         });
       }
 
-      function renderNote(n){
+      function renderParsedNote(n){
         const article = document.createElement('article');
         article.className = 'note';
-        article.setAttribute('data-version', n.version || '');
-        article.setAttribute('data-date', n.date || '');
-        const detailsHtml = (n.details || []).map(d=>`<li>${escapeHtml(d)}</li>`).join('');
-        article.innerHTML = `
-          <div class="note-head">
-            <div class="meta">
-              <div class="ver">${escapeHtml(n.version||'')}</div>
-              <div class="date">${escapeHtml(n.date||'')}</div>
-            </div>
-            <div class="toggle-icon">+</div>
-          </div>
-          <div class="note-body">
-            <p>${escapeHtml(n.title||'')}</p>
-            ${ detailsHtml ? `<ul>${detailsHtml}</ul>` : '' }
-          </div>
-        `;
+        article.setAttribute('data-version', n.version||'');
+        article.setAttribute('data-date', n.date||'');
+        const detailsHtml = (n.details||[]).map(d=>`<li>${escapeHtml(d)}</li>`).join('');
+        article.innerHTML = `\n          <div class="note-head">\n            <div class="meta">\n              <div class="ver">${escapeHtml(n.version||'')}</div>\n              <div class="date">${escapeHtml(n.date||'')}</div>\n            </div>\n            <div class="toggle-icon">+</div>\n          </div>\n          <div class="note-body">\n            <p>${escapeHtml(n.title||'')}</p>\n            ${ detailsHtml ? `<ul>${detailsHtml}</ul>` : '' }\n          </div>\n        `;
         wireToggle(article);
         return article;
       }
 
-      function escapeHtml(s){
-        return (s||'').toString().replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" })[c]);
+      // parse raw message text in the format described
+      function parseRawMessage(text){
+        const lines = text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(Boolean);
+        if(lines.length < 3) return null;
+        const date = lines[0];
+        const version = lines[1];
+        const title = lines[2];
+        const details = lines.slice(3).map(l=>l.replace(/^[-*\u2022]\s?/, '').trim()).filter(Boolean);
+        return { date, version, title, details };
       }
 
-      async function loadNotes(){
+      async function load(){
         try{
-          const resp = await fetch('/api/patchnotes');
-          if(!resp.ok) throw new Error('Network response not ok');
+          const resp = await fetch(BACKEND, { cache: 'no-store' });
+          if(!resp.ok) throw new Error('Network error');
           const data = await resp.json();
+
           notesEl.innerHTML = '';
-          const notes = data.notes || [];
-          if(notes.length === 0){ updateEmpty(); return; }
-          notes.forEach(n=>{
-            const a = renderNote(n);
-            notesEl.appendChild(a);
-          });
+
+          // If backend returned parsed notes (notes array), use it
+          if(Array.isArray(data.notes)){
+            data.notes.forEach(n=> notesEl.appendChild(renderParsedNote(n)));
+            updateEmpty();
+            return;
+          }
+
+          // Otherwise, try to interpret data as array of messages or a single text blob
+          if(Array.isArray(data)){
+            data.forEach(item=>{
+              // item could be an object {content: '...'} or a string
+              const raw = typeof item === 'string' ? item : (item.content||'');
+              const parsed = parseRawMessage(raw);
+              if(parsed) notesEl.appendChild(renderParsedNote({ date: parsed.date, version: parsed.version, title: parsed.title, details: parsed.details }));
+            });
+            updateEmpty();
+            return;
+          }
+
+          // fallback: if data.message or data.content exists, try parseRawMessage
+          const raw = data.message || data.content || '';
+          const parsed = parseRawMessage(raw);
+          if(parsed){ notesEl.appendChild(renderParsedNote(parsed)); updateEmpty(); return; }
+
+          // nothing usable
           updateEmpty();
         }catch(err){
-          console.error('Failed to load patch notes', err);
-          // leave the sample notes as fallback
+          console.warn('Patchnotes: failed to load from backend', err);
+          // leave notes empty and show fallback message
+          updateEmpty();
         }
       }
 
+      // wire search/local new button behavior (works even when notes are dynamic)
       search.addEventListener('input', ()=>{
         const q = search.value.trim().toLowerCase();
         const notes = Array.from(notesEl.querySelectorAll('.note'));
@@ -164,23 +188,17 @@
         article.className = 'note';
         article.setAttribute('data-version', ver);
         article.setAttribute('data-date', date);
-        article.innerHTML = `\n          <div class="note-head">\n            <div class="meta">\n              <div class="ver">${ver}</div>\n              <div class="date">${date}</div>\n            </div>\n            <div class="toggle-icon">−</div>\n          </div>\n          <div class="note-body" style="display:block">${body||''}</div>\n        `;
+        article.innerHTML = `\n          <div class="note-head">\n            <div class="meta">\n              <div class="ver">${ver}</div>\n              <div class="date">${date}</div>\n            </div>\n            <div class="toggle-icon">−</div>\n          </div>\n          <div class="note-body" style="display:block">${escapeHtml(body||'')}</div>\n        `;
         notesEl.insertAdjacentElement('afterbegin', article);
         const head = article.querySelector('.note-head');
         const bodyEl = article.querySelector('.note-body');
-        const icon = article.querySelector('.toggle-icon');
-        head.addEventListener('click', ()=>{
-          const open = bodyEl.style.display === 'block';
-          if(open){ bodyEl.style.display = 'none'; icon.textContent = '+'; }
-          else{ bodyEl.style.display = 'block'; icon.textContent = '−'; }
-        });
+        head.addEventListener('click', ()=>{ const open = bodyEl.style.display === 'block'; if(open){ bodyEl.style.display = 'none'; } else{ bodyEl.style.display = 'block'; } });
         updateEmpty();
       });
 
       // initial load
-      loadNotes();
-      updateEmpty();
-    });
+      load();
+    })();
   </script>
 </body>
 </html>

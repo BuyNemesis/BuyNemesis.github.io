@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="../css/reviews.css">
     <script src="reviews-new.js"></script>
     <script src="live-counters.js"></script>
-    <script src="captcha.js"></script>
-    <script src="auth.js"></script>
     <script>
     // Review cards scroll animation setup
     function setupReviewAnimations() {
@@ -424,21 +422,25 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
+            right: 0;
             z-index: 1000;
             background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(232, 187, 249, 0.1);
-            padding: 20px 0;
+            padding: 20px 24px; /* vertical + slightly larger horizontal inset */
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* brand left, links right */
         }
 
+        /* Keep a centered inner container available if needed elsewhere, but not used for the main banner layout */
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 0 40px;
+            gap: 20px;
+            padding: 0; /* no horizontal padding */
         }
 
         .nav-brand {
@@ -448,12 +450,23 @@
             color: #E8BBF9;
             text-shadow: 0 0 20px rgba(232, 187, 249, 0.5);
             text-decoration: none;
+            margin-left: 0; /* flush to viewport left edge */
+            padding-left: 0;
         }
 
         .nav-links {
             display: flex;
             gap: 30px;
             align-items: center;
+            margin-left: auto; /* keep links on the far right */
+            margin-right: 0; /* flush to viewport right edge */
+        }
+
+        @media (max-width: 768px) {
+            /* allow wrapping and normal flow on small screens */
+            .navbar { flex-wrap: wrap; padding: 12px 20px; }
+            .nav-brand { margin-left: 0; order: 1; width: 100%; text-align: left; padding-left: 0; }
+            .nav-links { margin-left: 0; order: 2; width: 100%; justify-content: flex-start; gap: 14px; padding: 8px 0 0 0; }
         }
 
         .nav-btn {
@@ -467,24 +480,10 @@
             text-transform: uppercase;
         }
 
-        .nav-btn::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: linear-gradient(90deg, #E8BBF9, #C38EE1, #8E57B5);
-            transition: width 0.3s ease;
-        }
+        /* remove underline pseudo-element under links */
+        .nav-btn::after { display: none !important; }
 
-        .nav-btn:hover {
-            color: #E8BBF9;
-        }
-
-        .nav-btn:hover::after {
-            width: 100%;
-        }
+        .nav-btn:hover { color: #E8BBF9; }
 
         /* Hero Section */
         .hero {
@@ -947,15 +946,14 @@
 
     <!-- Nemesis content with getnight.wtf theme will be inserted here. -->
     <nav class="navbar">
-        <div class="nav-container">
-            <a href="#" class="nav-brand">nemesis</a>
-            <div class="nav-links">
-                <a href="#features" class="nav-btn">Features</a>
-                <a href="media.html" class="nav-btn">Media</a>
-                <a href="#screenshots" class="nav-btn">Demos</a>
-                <a href="#faq" class="nav-btn">FAQ</a>
-                <a href="#buy" class="nav-btn">Buy</a>
-            </div>
+        <a href="#" class="nav-brand">nemesis</a>
+        <div class="nav-links">
+            <a href="#features" class="nav-btn">Features</a>
+            <a href="media.html" class="nav-btn">Media</a>
+            <a href="patchnotes.html" class="nav-btn">Patchnotes</a>
+            <a href="#screenshots" class="nav-btn">Demos</a>
+            <a href="#faq" class="nav-btn">FAQ</a>
+            <a href="#buy" class="nav-btn">Buy</a>
         </div>
     </nav>
 
@@ -1019,7 +1017,7 @@
         <div class="container">
             <h2 class="section-title">See in Action</h2>
             <p class="hero-subtitle">Explore all features with live demonstrations</p>
-            <div class="pricing-grid" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto;">
+            <div class="pricing-grid" style="grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 900px; margin: 0 auto;">
                 <div class="pricing-card" style="cursor: pointer;" onclick="window.location.href='features.html'">
                     <h3 class="plan-name">View Feature Demos</h3>
                     <ul class="plan-features">
@@ -1033,6 +1031,15 @@
                     </ul>
                     <div style="margin-top: 1.5rem;">
                         <span style="color: #E8BBF9; font-size: 0.9rem; letter-spacing: 1px;">Click to explore →</span>
+                    </div>
+                </div>
+
+                <div class="pricing-card" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="window.location.href='media.html'">
+                    <h3 class="plan-name">See Nemesis Clips</h3>
+                    <p class="hero-subtitle" style="margin: 0 0 1rem 0; color: rgba(255,255,255,0.7);">Watch user-submitted clips from our Discord members — updated live as they're posted.</p>
+                    <div style="height:18px; margin-bottom:1rem;"></div>
+                    <div style="margin-top: 0.5rem;">
+                        <span style="color: #E8BBF9; font-size: 0.9rem; letter-spacing: 1px;">Open media gallery →</span>
                     </div>
                 </div>
             </div>
@@ -1397,7 +1404,7 @@
         </div>
     </section>
 
-    <script src="captcha.js"></script>
+    
 </body>
 </html>
 

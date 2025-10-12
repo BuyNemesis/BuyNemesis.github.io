@@ -1,0 +1,25 @@
+{
+  "media": [
+    {
+      "type": "video",
+      "videoUrl": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "title": "Test Clip: Flower",
+      "author": "TestUser",
+      "date": "2025-10-11T12:00:00Z"
+    },
+    {
+      "type": "photo",
+      "photoUrl": "https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d",
+      "title": "Test Photo: Sunset",
+      "author": "PhotoUser",
+      "date": "2025-10-10T08:00:00Z"
+    },
+    {
+      "type": "streamable",
+      "url": "https://streamable.com/abcde",
+      "title": "Streamable Demo",
+      "author": "StreamUser",
+      "date": "2025-10-09T20:00:00Z"
+    }
+  ]
+}

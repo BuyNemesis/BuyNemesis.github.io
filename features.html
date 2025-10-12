@@ -44,7 +44,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 20px 40px;
+            padding: 20px 24px; /* match index spacing */
             z-index: 1000;
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
@@ -60,7 +60,14 @@
             font-weight: 600;
             color: #E8BBF9;
             text-shadow: 0 0 20px rgba(232, 187, 249, 0.5);
+            margin-right: auto;
+            margin-left: 0; 
         }
+
+        .nav-links { display:flex; gap:22px; align-items:center; margin-left:auto; margin-right:0; }
+        .nav-btn { color: rgba(255,255,255,0.7); text-decoration:none; font-weight:500; font-size:13px; letter-spacing:0.6px; text-transform:uppercase; transition: all 0.2s; }
+        .nav-btn::after { display:none !important; }
+        .nav-btn:hover { color: #E8BBF9; }
 
         .nav-back {
             color: rgba(255, 255, 255, 0.7);
@@ -224,23 +231,11 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .features-container {
-                flex-direction: column;
-            }
-
-            .features-sidebar {
-                width: 100%;
-                height: auto;
-                max-height: 200px;
-            }
-
-            .feature-title {
-                font-size: 2rem;
-            }
-
-            .features-content {
-                padding: 2rem 1rem;
-            }
+            .navbar { padding: 12px 20px; flex-wrap: wrap; }
+            .features-container { flex-direction: column; }
+            .features-sidebar { width: 100%; height: auto; max-height: 200px; }
+            .feature-title { font-size: 2rem; }
+            .features-content { padding: 2rem 1rem; }
         }
 
         /* Fade animation */
@@ -262,8 +257,15 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-brand">nemesis</div>
-        <a href="index.html" class="nav-back">← Back to Home</a>
+        <a href="index.html" class="nav-brand">nemesis</a>
+        <div class="nav-links">
+            <a href="#features" class="nav-btn">Features</a>
+            <a href="media.html" class="nav-btn">Media</a>
+            <a href="patchnotes.html" class="nav-btn">Patchnotes</a>
+            <a href="#screenshots" class="nav-btn">Demos</a>
+            <a href="#faq" class="nav-btn">FAQ</a>
+            <a href="#buy" class="nav-btn">Buy</a>
+        </div>
     </nav>
 
     <div class="features-container">
