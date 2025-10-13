@@ -42,6 +42,14 @@
     .search{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#fff}
     .empty{padding:28px;text-align:center;color:var(--muted);background:transparent;border-radius:8px}
     footer{max-width:1100px;margin:0 auto 40px;padding:0 20px;color:var(--muted);font-size:0.95rem}
+    
+    /* Toggle Buttons */
+    .type-toggle{margin:20px 0}
+    .toggle-buttons{display:flex;gap:8px;justify-content:center}
+    .toggle-btn{padding:12px 24px;border:1px solid rgba(232,187,249,0.3);background:transparent;color:rgba(232,187,249,0.8);border-radius:8px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem;font-weight:500}
+    .toggle-btn:hover{border-color:rgba(232,187,249,0.6);color:#E8BBF9}
+    .toggle-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;border-color:transparent;font-weight:600}
+    
     @media (max-width:720px){h1{font-size:1.7rem}.container{margin:92px auto}}
   </style>
 </head>
@@ -62,6 +70,15 @@
       <h1>Patch Notes</h1>
       <p class="lead">Changelog and patch notes for the project. Add entries below to keep users informed.</p>
     </header>
+    
+    <!-- Type Toggle Section -->
+    <section class="type-toggle">
+      <div class="toggle-buttons">
+        <button id="website-btn" class="toggle-btn active">🌐 Website</button>
+        <button id="cheat-btn" class="toggle-btn">⚙️ Cheat</button>
+      </div>
+    </section>
+    
     <section class="search-row">
       <input id="search" class="search" placeholder="Search patch notes (version, text, date)..." />
       <button id="new-note" style="padding:10px 14px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;color:#000;font-weight:700">New</button>
@@ -76,10 +93,14 @@
     // Client fetch for patchnotes from the deployed backend.
     // It will try the Render URL and gracefully fallback if unavailable.
     (function(){
-      const BACKEND = 'https://nemesis-backend-yv3w.onrender.com/api/patchnotes';
+      const BACKEND_BASE = 'https://nemesis-backend-yv3w.onrender.com/api/patchnotes';
       const notesEl = document.getElementById('notes');
       const search = document.getElementById('search');
       const empty = document.getElementById('empty');
+      const websiteBtn = document.getElementById('website-btn');
+      const cheatBtn = document.getElementById('cheat-btn');
+      
+      let currentType = 'website'; // default type
 
       function escapeHtml(s){
         return (s||'').toString().replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" })[c]);
@@ -89,6 +110,17 @@
         const any = notesEl.querySelectorAll('.note');
         empty.style.display = any.length ? 'none' : '';
       }
+      
+      function setActiveType(type) {
+        currentType = type;
+        websiteBtn.classList.toggle('active', type === 'website');
+        cheatBtn.classList.toggle('active', type === 'cheat');
+        load(); // reload with new type
+      }
+
+      // Toggle button event listeners
+      websiteBtn.addEventListener('click', () => setActiveType('website'));
+      cheatBtn.addEventListener('click', () => setActiveType('cheat'));
 
       function wireToggle(article){
         const head = article.querySelector('.note-head');
@@ -125,7 +157,8 @@
 
       async function load(){
         try{
-          const resp = await fetch(BACKEND, { cache: 'no-store' });
+          const url = `${BACKEND_BASE}?type=${currentType}`;
+          const resp = await fetch(url, { cache: 'no-store' });
           if(!resp.ok) throw new Error('Network error');
           const data = await resp.json();
 
