@@ -289,6 +289,32 @@
     </div>
 
     <script>
+        // Feature videos cache from Discord
+        let featureVideos = {};
+        
+        // Fetch feature videos from Discord via backend
+        async function fetchFeatureVideos() {
+            try {
+                const API_URL = 'https://nemesis-backend-yv3w.onrender.com/api/feature-videos';
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                const data = await response.json();
+                // Expecting { videos: [{ name: "Aimbot.mp4", url: "..." }, ...] }
+                if (data.videos && Array.isArray(data.videos)) {
+                    data.videos.forEach(video => {
+                        // Extract feature name without .mp4 extension
+                        const featureName = video.name.replace('.mp4', '').replace(/_/g, ' ');
+                        featureVideos[featureName] = video.url;
+                    });
+                }
+                console.log('[Feature Videos] Loaded from Discord:', featureVideos);
+            } catch (error) {
+                console.error('[Feature Videos] Failed to fetch:', error);
+            }
+        }
+        
         const features = [
             {
                 name: "Main Menu",
@@ -393,8 +419,8 @@
                     container.addEventListener('click', e => { setSlider(e.clientX); });
                 }, 0);
             } else {
-                // Build video file name: ../Features/{featureName}.mp4 (spaces -> underscores)
-                const videoFile = `../Features/${feature.name.replace(/\s+/g, '_')}.mp4`;
+                // Get video URL from Discord cache or fallback to local
+                const videoFile = featureVideos[feature.name] || `../Features/${feature.name.replace(/\s+/g, '_')}.mp4`;
                 display.innerHTML = `
                     <h1 class="feature-title">${feature.title}</h1>
                     <p class="feature-description">${feature.description}</p>
@@ -464,9 +490,14 @@
             if (e.key === 'ArrowLeft') previousFeature();
         });
 
-        // Initialize
-        renderFeatureList();
-        showFeature(0);
+        // Initialize: fetch videos from Discord and render features
+        async function initializeFeatures() {
+            await fetchFeatureVideos();
+            renderFeatureList();
+            showFeature(0);
+        }
+        
+        initializeFeatures();
     </script>
     
     
