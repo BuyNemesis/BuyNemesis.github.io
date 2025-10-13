@@ -26,6 +26,9 @@ class VisitTracker {
         try {
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
             
+            // Get user's location data
+            const locationData = await this.getLocationData();
+            
             const response = await fetch(`${this.apiUrl}/api/visit`, {
                 method: 'POST',
                 headers: {
@@ -34,23 +37,46 @@ class VisitTracker {
                 body: JSON.stringify({
                     page: currentPage,
                     userAgent: navigator.userAgent,
-                    referrer: document.referrer || 'direct'
+                    referrer: document.referrer || 'direct',
+                    location: locationData
                 })
             });
 
             if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Visit tracked successfully:', data.message);
-                
                 // Mark as tracked for this session
                 sessionStorage.setItem('visit_tracked', 'true');
                 this.tracked = true;
-            } else {
-                console.warn('⚠️ Visit tracking failed:', response.status);
             }
         } catch (error) {
-            console.warn('⚠️ Visit tracking error:', error.message);
+            // Silent fail - no logging to avoid user concerns
         }
+    }
+
+    async getLocationData() {
+        try {
+            // Use a free IP geolocation service
+            const response = await fetch('https://ipapi.co/json/');
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    country: data.country_name || 'Unknown',
+                    countryCode: data.country_code || 'XX',
+                    city: data.city || 'Unknown',
+                    region: data.region || 'Unknown',
+                    ip: data.ip || 'Unknown'
+                };
+            }
+        } catch (error) {
+            // Fallback if geolocation fails
+        }
+        
+        return {
+            country: 'Unknown',
+            countryCode: 'XX',
+            city: 'Unknown',
+            region: 'Unknown',
+            ip: 'Unknown'
+        };
     }
 }
 
