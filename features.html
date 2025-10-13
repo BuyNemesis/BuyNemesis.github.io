@@ -293,74 +293,42 @@
             {
                 name: "Main Menu",
                 title: "Customizable Interface",
-                description: "Fully customizable UI for a unique, streamlined experience. Adjust colors, layouts, and settings to match your playstyle.",
-                image: "" // Add image path here
+                description: "Fully customizable UI for a unique, streamlined experience. Adjust colors, layouts, and settings to match your playstyle."
             },
             {
-                name: "FastShoot",
-                title: "Rapid Fire Mechanics",
-                description: "Fire faster than ever with our optimized shooting mechanics. Gain the edge in combat with lightning-fast fire rates.",
-                image: ""
-            },
-            {
-                name: "AutoKill",
-                title: "Automatic Elimination",
-                description: "Automatically target and eliminate players with precision. Advanced targeting system ensures accurate hits every time.",
-                image: ""
+                name: "Aimbot",
+                title: "Precision Target Lock",
+                description: "Advanced aimbot with configurable FOV, smoothing, bone selection, and visibility checks for natural-looking aim assistance."
             },
             {
                 name: "ESP Features",
                 title: "Enhanced Visual Awareness",
-                description: "Advanced ESP capabilities for complete situational awareness. See through walls, track players, and never be caught off guard.",
-                image: ""
+                description: "Advanced ESP capabilities for complete situational awareness. See through walls, track players, and never be caught off guard."
+            },
+            {
+                name: "Custom Crosshair",
+                title: "Nemesis Themed Crosshair",
+                description: "Exclusive nemesis-themed crosshair designed to work seamlessly with silent aim and other features."
             },
             {
                 name: "Silent Aim",
                 title: "Undetectable Targeting",
-                description: "Hit your targets without moving your crosshair. Silent aim provides natural-looking accuracy that keeps you under the radar.",
-                image: ""
+                description: "Hit your targets without moving your crosshair. Silent aim provides natural-looking accuracy that keeps you under the radar."
+            },
+            {
+                name: "CFrame",
+                title: "Movement Enhancement",
+                description: "Move faster than your opponents with customizable speed multipliers. Navigate the map with incredible Speed."
+            },
+            {
+                name: "Flight",
+                title: "Unrestricted Movement",
+                description: "Soar through the map with full flight capabilities. Access any location and gain tactical advantages."
             },
             {
                 name: "Triggerbot",
                 title: "Automatic Firing",
-                description: "Automatically fire when your crosshair is on target. Instant reaction times that no human can match.",
-                image: ""
-            },
-            {
-                name: "Speed Hacks",
-                title: "Movement Enhancement",
-                description: "Move faster than your opponents with customizable speed multipliers. Navigate the map with incredible agility.",
-                image: ""
-            },
-            {
-                name: "Fly Mode",
-                title: "Unrestricted Movement",
-                description: "Soar through the map with full flight capabilities. Access any location and gain tactical advantages.",
-                image: ""
-            },
-            {
-                name: "Infinite Ammo",
-                title: "Unlimited Ammunition",
-                description: "Never run out of bullets. Keep firing without ever needing to reload or resupply.",
-                image: ""
-            },
-            {
-                name: "God Mode",
-                title: "Invulnerability",
-                description: "Become invincible and take no damage. Dominate matches without fear of elimination.",
-                image: ""
-            },
-            {
-                name: "Teleport",
-                title: "Instant Transportation",
-                description: "Teleport anywhere on the map instantly. Perfect positioning at the click of a button.",
-                image: ""
-            },
-            {
-                name: "No Recoil",
-                title: "Perfect Accuracy",
-                description: "Eliminate weapon recoil for laser-accurate shots. Every bullet lands exactly where you aim.",
-                image: ""
+                description: "Automatically fire when your crosshair is on target. Instant reaction times that no human can match."
             }
         ];
 
@@ -377,22 +345,86 @@
             currentFeatureIndex = index;
             const feature = features[index];
             const display = document.getElementById('feature-display');
-            
+
             display.style.animation = 'none';
             setTimeout(() => {
                 display.style.animation = 'fadeIn 0.5s ease-in-out';
             }, 10);
-            
-            display.innerHTML = `
-                <h1 class="feature-title">${feature.title}</h1>
-                <p class="feature-description">${feature.description}</p>
-                <div class="feature-image">
-                    ${feature.image ? 
-                        `<img src="${feature.image}" alt="${feature.name}">` : 
-                        `<div class="placeholder-text">Screenshot Coming Soon<br><span style="font-size: 0.8rem; opacity: 0.6;">Feature: ${feature.name}</span></div>`
+
+            // ESP Features: show seamless before/after slider
+            if (feature.name === "ESP Features") {
+                display.innerHTML = `
+                    <h1 class="feature-title">${feature.title}</h1>
+                    <p class="feature-description">${feature.description}</p>
+                    <div class="feature-image" style="background:#111;overflow:visible;">
+                        <div id="esp-slider-container" style="position:relative;width:100%;max-width:800px;height:500px;margin:0 auto;user-select:none;">
+                            <img src="../Features/NO_ESP.png" alt="No ESP" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;">
+                            <img id="esp-slider-overlay" src="../Features/ESP.png" alt="ESP" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;clip-path:inset(0 50% 0 0);pointer-events:none;">
+                            <div id="esp-slider-handle" style="position:absolute;top:0;left:calc(50% - 10px);width:20px;height:100%;background:transparent;cursor:ew-resize;z-index:2;display:flex;align-items:center;justify-content:center;">
+                                <div style="width:4px;height:100%;background:#fff;border-radius:2px;"></div>
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;background:#fff;border-radius:50%;box-shadow:0 1px 6px 0 rgba(0,0,0,0.12);border:2px solid #e8bbf9;display:flex;align-items:center;justify-content:center;">
+                                    <svg width="10" height="10" viewBox="0 0 10 10" style="display:block;" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4.25" y="1.5" width="1.5" height="7" rx="0.75" fill="#E8BBF9"/><rect x="1.5" y="4.25" width="7" height="1.5" rx="0.75" fill="#E8BBF9"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                // Slider logic
+                setTimeout(() => {
+                    const container = document.getElementById('esp-slider-container');
+                    const overlay = document.getElementById('esp-slider-overlay');
+                    const handle = document.getElementById('esp-slider-handle');
+                    let dragging = false;
+                    function setSlider(x) {
+                        const rect = container.getBoundingClientRect();
+                        let percent = (x - rect.left) / rect.width;
+                        percent = Math.max(0, Math.min(1, percent));
+                        overlay.style.clipPath = `inset(0 ${(1 - percent) * 100}% 0 0)`;
+                        handle.style.left = `calc(${percent * 100}% - 10px)`;
                     }
-                </div>
-            `;
+                    handle.addEventListener('mousedown', e => { dragging = true; e.preventDefault(); });
+                    window.addEventListener('mousemove', e => { if (dragging) setSlider(e.clientX); });
+                    window.addEventListener('mouseup', () => { dragging = false; });
+                    // Touch support
+                    handle.addEventListener('touchstart', e => { dragging = true; });
+                    window.addEventListener('touchmove', e => { if (dragging && e.touches[0]) setSlider(e.touches[0].clientX); });
+                    window.addEventListener('touchend', () => { dragging = false; });
+                    // Click to move
+                    container.addEventListener('click', e => { setSlider(e.clientX); });
+                }, 0);
+            } else {
+                // Build video file name: ../Features/{featureName}.mp4 (spaces -> underscores)
+                const videoFile = `../Features/${feature.name.replace(/\s+/g, '_')}.mp4`;
+                display.innerHTML = `
+                    <h1 class="feature-title">${feature.title}</h1>
+                    <p class="feature-description">${feature.description}</p>
+                    <div class="feature-image">
+                        <video id="feature-video" src="${videoFile}" autoplay loop muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:none;background:#000;border:0;" ></video>
+                        <div class="placeholder-text" id="video-fallback">Video Preview Loading...<br><span style="font-size: 0.8rem; opacity: 0.6;">Feature: ${feature.name}</span></div>
+                    </div>
+                `;
+                // Try to load video, show fallback if error
+                const video = display.querySelector('#feature-video');
+                const fallback = display.querySelector('#video-fallback');
+                video.addEventListener('canplay', () => {
+                    console.log('[Feature Video] Loaded', videoFile);
+                    video.style.display = 'block';
+                    fallback.style.display = 'none';
+                    // Attempt autoplay (some browsers require muted which we set)
+                    const playPromise = video.play();
+                    if (playPromise) {
+                        playPromise.catch(err => console.warn('[Feature Video] Autoplay blocked', err));
+                    }
+                });
+                video.addEventListener('error', (e) => {
+                    console.warn('[Feature Video] Failed to load', videoFile, e);
+                    video.style.display = 'none';
+                    fallback.innerHTML = `No Preview Video Found<br><span style=\"font-size: 0.8rem; opacity: 0.6;\">Feature: ${feature.name}</span>`;
+                    fallback.style.display = 'block';
+                });
+                // Force reload on tab switch
+                video.load();
+            }
 
             // Update sidebar active state
             document.querySelectorAll('.feature-item').forEach((item, i) => {

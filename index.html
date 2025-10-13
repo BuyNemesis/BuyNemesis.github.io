@@ -1,3 +1,4 @@
+        
 
 <!DOCTYPE html>
 <html lang="en">
@@ -110,6 +111,27 @@
             box-sizing: border-box;
         }
 
+        /* Unified site-wide giant gradient background */
+        body {
+            /* override earlier background if any */
+            background: radial-gradient(circle at 20% 20%, rgba(232,187,249,0.12) 0%, rgba(195,142,225,0.05) 25%, rgba(0,0,0,0) 55%),
+                        radial-gradient(circle at 80% 60%, rgba(142,87,181,0.18) 0%, rgba(142,87,181,0.05) 35%, rgba(0,0,0,0) 70%),
+                        linear-gradient(180deg, #050507 0%, #07070b 40%, #06060a 70%, #040406 100%);
+            background-attachment: fixed, fixed, fixed; /* parallax feel */
+            background-repeat: no-repeat;
+            background-size: cover, cover, 100% 100%;
+            padding-top: 100px; /* space for fixed navbar */
+        }
+
+        /* Remove per-section solid backgrounds to let global gradient flow */
+        .section-blend { background: transparent !important; }
+        .panel-preview-section { background: transparent !important; }
+        .reviews.section-blend { background: transparent !important; }
+        /* Remove any custom before/after lines that clash */
+        .reviews::before, .reviews::after { display: none !important; }
+        /* Remove hero fade pseudo now redundant */
+        .hero::after { display: none !important; }
+
         /* Scroll Animation Styles */
         .animate-on-scroll {
             opacity: 0;
@@ -144,58 +166,246 @@
         }
         
         .review-card {
-            background: #0a0a0a;
-            border: 1px solid rgba(232, 187, 249, 0.15);
-            border-radius: 0;
-            padding: 1.5rem;
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 20px rgba(0, 0, 0, 0.5);
+            background: #101014;
+            border: 1.5px solid rgba(232,187,249,0.13);
+            border-radius: 12px;
+            padding: 1.4rem 1.2rem 1.2rem 1.2rem;
             display: flex;
             flex-direction: column;
-            min-height: 180px;
-            height: 100%;
+            min-height: 200px;
+            position: relative;
+            transition: box-shadow .3s ease, transform .3s ease, border-color .25s ease;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.3), 0 1px 4px rgba(232,187,249,0.05);
+        }
+        .review-card:hover {
+            transform: translateY(-6px);
+            border-color: #E8BBF9;
+            box-shadow: 0 8px 28px rgba(232,187,249,0.15), 0 4px 18px rgba(0,0,0,0.45);
+            background:#15151a;
+        }
+        .review-card::before, .review-card::after { display:none !important; }
+    .panel-preview-section::before { display: none !important; }
+    .panel-preview-section .container { position:relative; z-index:5; }
+    .panel-preview-section .section-title, .panel-preview-section .hero-subtitle { position:relative; z-index:6; }
+    .panel-stack { z-index:1; }
+    .hero { position:relative; z-index:10; }
+
+        .panel-stack {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 800px;
+            margin: 80px auto 0 auto;
+            max-width: 1400px;
             width: 100%;
-            max-width: 350px;
-            margin-left: auto;
-            margin-right: auto;
+            perspective: 1000px;
         }
 
-        .review-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .review-card::before {
-            content: "";
+        .panel-image {
             position: absolute;
+            border-radius: 0;
+            overflow: visible;
+            box-shadow: none;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            border: none;
+            background: transparent;
+            backdrop-filter: none;
+            will-change: transform;
+            cursor: pointer;
+        }
+
+        .panel-image::before {
+            display: none;
+        }
+
+        .panel-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            filter: brightness(0.95) saturate(1.1) drop-shadow(0 20px 60px rgba(0, 0, 0, 0.7)) drop-shadow(0 8px 32px rgba(232, 187, 249, 0.05));
+            transition: all 0.6s ease;
+            border-radius: 0;
+        }
+
+        .panel-image.focused {
+            transform: translateY(-20px) translateZ(50px) scale(1.03);
+            box-shadow: none;
+            border-color: transparent;
+            z-index: 1000 !important;
+        }
+
+        .panel-image.focused img {
+            filter: brightness(1.05) saturate(1.2) drop-shadow(0 30px 80px rgba(0, 0, 0, 0.8)) drop-shadow(0 12px 40px rgba(232, 187, 249, 0.08)) drop-shadow(0 0 0 1px rgba(232, 187, 249, 0.05));
+            transform: scale(1.02);
+        }
+
+        .panel-image.popup-active {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) scale(1.5) !important;
+            z-index: 9999 !important;
+            width: 700px !important;
+            height: 525px !important;
+        }
+
+        .panel-image.popup-active img {
+            filter: brightness(1.1) saturate(1.3) drop-shadow(0 40px 120px rgba(0, 0, 0, 0.9)) drop-shadow(0 20px 60px rgba(232, 187, 249, 0.2));
+        }
+
+        /* New full-screen overlay that provides backdrop blur & dim when a panel image is popped up */
+        /* Root content blur approach */
+        #site-root {
+            position: relative;
+            z-index: 1;
+            transition: filter .5s ease, opacity .5s ease;
+        }
+        body.image-popup-open #site-root {
+            filter: none;
+        }
+        /* Removed blur; optional gentle backdrop dim (comment out if not desired) */
+        /* Overlay removed as requested: no dim, only the image above content */
+        body.image-popup-open::after { display: none; }
+
+        /* Disable pointer events on other panel images when popup is open */
+        .panel-stack.popup-open .panel-image:not(.popup-active) { pointer-events: none !important; }
+
+        /* Elevate popup image above overlay */
+        .panel-image.popup-active { z-index: 3100 !important; }
+    /* When absolutely on top (after reparent to body) */
+    .panel-image.popup-elevated { z-index: 2147483647 !important; }
+        .panel-image.popup-active img { border-radius: 4px; }
+    .panel-placeholder { display: none; }
+
+        .popup-container {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, #E8BBF9, #E8BBF9);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
+            height: 100%;
+            z-index: 3000;
+            pointer-events: none;
+            display: none;
         }
-        
-        .review-card:hover {
-            transform: translateY(-8px);
-            border-color: transparent;
-            box-shadow: 0 0 0 1px #E8BBF9, 0 8px 25px rgba(0, 0, 0, 0.6);
+
+        .popup-container.active {
+            display: block;
         }
-        
-        .review-card:hover::before {
-            transform: scaleX(1);
+
+        .popup-container .panel-image {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.5);
+            width: 700px;
+            height: 525px;
+            pointer-events: auto;
+            transition: none; /* Remove transition to prevent conflicts */
         }
-        .review-card {
-            max-width: 350px;
-            width: 100%;
-            margin-left: auto;
-            margin-right: auto;
+
+        .popup-container .panel-image img {
+            filter: brightness(1.1) saturate(1.3) drop-shadow(0 40px 120px rgba(0, 0, 0, 0.9)) drop-shadow(0 20px 60px rgba(232, 187, 249, 0.1));
+        }
+
+        /* Animation states for smooth sequence */
+        .panel-image.animating-to-popup {
+            position: fixed !important;
+            z-index: 1999 !important;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1) !important;
+        }
+
+        .panel-image.popup-active {
+            position: fixed !important;
+            z-index: 2000 !important;
+        }
+
+        /* Repositioning for remaining panels when one is in popup */
+        .panel-stack.has-popup .panel-1:not(.popup) {
+            transform: translateX(-50%) translateY(-50%) translateX(-150px) translateY(-80px) rotateY(6deg) rotateZ(-2deg);
+        }
+
+        .panel-stack.has-popup .panel-2:not(.popup) {
+            transform: translateX(-50%) translateY(-50%) translateX(0px) translateY(-60px) rotateY(0deg) rotateZ(0deg);
+        }
+
+        .panel-stack.has-popup .panel-3:not(.popup) {
+            transform: translateX(-50%) translateY(-50%) translateX(150px) translateY(-40px) rotateY(-6deg) rotateZ(2deg);
+        }
+
+        .panel-stack.has-popup .panel-4:not(.popup) {
+            transform: translateX(-50%) translateY(-50%) translateX(0px) translateY(40px) rotateY(0deg) rotateZ(0deg);
+        }
+
+        .panel-image:not(.focused) {
+            pointer-events: auto;
+        }
+
+        .panel-image.focused {
+            pointer-events: auto;
+        }
+
+        .panel-1 {
+            width: 580px;
+            height: 435px;
+            z-index: 4;
+            left: 50%;
+            top: 50%;
+            transform: translateX(-50%) translateY(-50%) translateX(-280px) translateY(-120px) rotateY(8deg) rotateZ(-3deg);
+        }
+
+        .panel-2 {
+            width: 580px;
+            height: 435px;
+            z-index: 3;
+            left: 50%;
+            top: 50%;
+            transform: translateX(-50%) translateY(-50%) translateX(-90px) translateY(-80px) rotateY(4deg) rotateZ(1deg);
+        }
+
+        .panel-3 {
+            width: 580px;
+            height: 435px;
+            z-index: 2;
+            left: 50%;
+            top: 50%;
+            transform: translateX(-50%) translateY(-50%) translateX(90px) translateY(-40px) rotateY(-4deg) rotateZ(-1deg);
+        }
+
+        .panel-4 {
+            width: 580px;
+            height: 435px;
+            z-index: 1;
+            left: 50%;
+            top: 50%;
+            transform: translateX(-50%) translateY(-50%) translateX(280px) translateY(0px) rotateY(-8deg) rotateZ(3deg);
+        }
+
+        @media (max-width: 768px) {
+            .panel-stack {
+                height: 560px;
+                transform: translateX(-50%) scale(0.8);
+                max-width: 960px;
+            }
+            
+            .panel-1, .panel-2, .panel-3, .panel-4 {
+                width: 416px !important;
+                height: 312px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel-stack {
+                transform: translateX(-50%) scale(0.6);
+                height: 420px;
+                max-width: 720px;
+            }
+            
+            .panel-1, .panel-2, .panel-3, .panel-4 {
+                width: 312px !important;
+                height: 234px !important;
+            }
         }
 
         /* Make sure the reviews-grid doesn't stretch full width */
@@ -548,23 +758,32 @@
         }
 
         .pricing-card {
-            padding: 50px 40px;
-            border: 1px solid rgba(232, 187, 249, 0.15);
+            background: #101014;
+            border: 1.5px solid rgba(232, 187, 249, 0.13);
+            padding: 2.2rem 1.6rem 1.9rem 1.6rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 280px;
             position: relative;
-            transition: all 0.4s ease;
-            background: #0a0a0a;
+            transition: box-shadow 0.32s cubic-bezier(.22,.9,.3,1), transform 0.32s cubic-bezier(.22,.9,.3,1), border-color 0.25s;
+            box-shadow: 0 3px 18px 0 rgba(0,0,0,0.35), 0 2px 8px 0 rgba(232,187,249,0.07);
+            border-radius: 16px;
+            overflow: hidden;
         }
 
         .pricing-card:hover {
-            border-color: rgba(232, 187, 249, 0.4);
-            transform: translateY(-10px);
-            background: #0a0a0a;
-            box-shadow: 0 10px 40px rgba(232, 187, 249, 0.2);
+            transform: translateY(-10px) scale(1.035);
+            box-shadow: 0 14px 44px 0 rgba(232,187,249,0.18), 0 6px 28px 0 rgba(0,0,0,0.45);
+            border-color: #E8BBF9;
+            background: #15151a;
         }
 
         .pricing-card.featured {
-            border-color: rgba(232, 187, 249, 0.6);
-            background: #0a0a0a;
+            border-color: #E8BBF9;
+            background: #15151a;
         }
 
         .pricing-card.featured::before {
@@ -579,37 +798,50 @@
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 1px;
+            border-radius: 8px;
         }
 
         .plan-name {
-            font-size: 1.5rem;
-            font-weight: 300;
-            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
             color: #E8BBF9;
+            letter-spacing: .5px;
         }
 
         .plan-price {
             font-size: 3rem;
-            font-weight: 100;
-            margin-bottom: 10px;
-            color: white;
+            font-weight: 300;
+            margin-bottom: 0.6rem;
+            color: #ffffff;
+            line-height: 1;
         }
 
         .plan-period {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.4);
-            margin-bottom: 30px;
+            font-size: 1.05rem;
+            color: rgba(232, 187, 249, 0.65);
+            margin-bottom: 1.4rem;
+            font-weight: 400;
+            letter-spacing: .5px;
         }
 
         .plan-features {
             list-style: none;
-            margin-bottom: 40px;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            gap: .55rem;
+            justify-content: center;
+            width: 100%;
+            padding: 0;
         }
 
         .plan-features li {
-            padding: 8px 0;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 14px;
+            padding: 0;
+            color: rgba(255, 255, 255, 0.80);
+            font-size: .95rem;
+            font-weight: 400;
+            letter-spacing: .4px;
         }
 
         .plan-features li::before {
@@ -916,10 +1148,11 @@
     </style>
 </head>
 <body>
-    <!-- Animated Gradient Orbs -->
-    <div class="gradient-orb orb-1"></div>
-    <div class="gradient-orb orb-2"></div>
-    <div class="gradient-orb orb-3"></div>
+    <div id="site-root">
+        <!-- Animated Gradient Orbs -->
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
 
     <!-- Animated Particles -->
     <div class="particles">
@@ -958,18 +1191,369 @@
         </div>
     </nav>
 
-    <section class="hero">
-        <div>
+    <section class="hero section-blend hero-centered">
+        <div class="hero-inner">
             <h1 class="hero-title">nemesis</h1>
             <p class="hero-subtitle">Why settle for less?</p>
-            <div style="margin-top:40px;">
-                <a href="#buy" class="purchase-btn" style="width:auto;display:inline-block;">Buy Now</a>
+            <a href="#buy" class="purchase-btn hero-cta">Buy Now</a>
+        </div>
+    </section>
+
+    <!-- Panel Preview Section -->
+    <section class="panel-preview-section section-blend preview-centered">
+        <div class="container">
+            <h2 class="section-title">Interface Preview</h2>
+            <p class="hero-subtitle">Experience our modern, intuitive interface design</p>
+            <div class="panel-stack">
+                <div class="panel-image panel-1" data-panel="1"><div class="panel-float-wrap"><img src="../cheat panel images/1.png" alt="Panel View 1" loading="lazy"></div></div>
+                <div class="panel-image panel-2" data-panel="2"><div class="panel-float-wrap"><img src="../cheat panel images/2.png" alt="Panel View 2" loading="lazy"></div></div>
+                <div class="panel-image panel-3" data-panel="3"><div class="panel-float-wrap"><img src="../cheat panel images/3.png" alt="Panel View 3" loading="lazy"></div></div>
+                <div class="panel-image panel-4" data-panel="4"><div class="panel-float-wrap"><img src="../cheat panel images/4.png" alt="Panel View 4" loading="lazy"></div></div>
             </div>
         </div>
     </section>
 
+    </div><!-- /#site-root -->
+
+    <!-- Popup Container (structure retained though not used for overlay now) -->
+    <div class="popup-container"></div>
+    <button class="panel-nav-arrow panel-nav-prev" aria-label="Previous screenshot" style="display:none">&#10094;</button>
+    <button class="panel-nav-arrow panel-nav-next" aria-label="Next screenshot" style="display:none">&#10095;</button>
+
+    <script>
+        // Panel popup system with root wrapper filter blur (no overlay element)
+        document.addEventListener('DOMContentLoaded', function() {
+            const panels = document.querySelectorAll('.panel-image');
+            const panelStack = document.querySelector('.panel-stack');
+            const popupContainer = document.querySelector('.popup-container');
+            const siteRoot = document.getElementById('site-root');
+            let popupPanel = null;
+            let originalPanel = null;
+            let placeholderNode = null;
+            let resizeHandler = null;
+            let animating = false;
+            let originalRect = null;
+            let originalPanelClass = null;
+            let originalScroll = { x: 0, y: 0 };
+
+            panels.forEach(panel => {
+                panel.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Check if this panel is currently the active popup
+                    if (this.classList.contains('popup-active')) {
+                        closePopup();
+                        return;
+                    }
+                    // Close any existing popup
+                    if (popupPanel) {
+                        closePopup();
+                    }
+                    // Animate other images away
+                    panels.forEach(p => {
+                        if (p !== this) p.classList.add('panel-away');
+                    });
+                    // Open popup for clicked panel
+                    openPopup(this);
+                });
+            });
+
+            function openPopup(panel) {
+                if (animating) return; // prevent double
+                animating = true;
+                originalPanel = panel;
+                popupPanel = panel; // The clicked panel becomes the popup panel
+
+                // Smooth scroll Interface Preview section into view (centered)
+                const previewSection = document.querySelector('.panel-preview-section');
+                if (previewSection) {
+                    previewSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                // Reparent immediately so overlay never sits above visually
+                if (!placeholderNode) {
+                    placeholderNode = document.createElement('div');
+                    placeholderNode.className = 'panel-placeholder';
+                    panel.parentNode.insertBefore(placeholderNode, panel);
+                }
+                // Save original rect (with scroll offsets) & class for reverse animation
+                {
+                    const rect = panel.getBoundingClientRect();
+                    originalRect = {
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height
+                    };
+                    originalScroll = { x: window.scrollX, y: window.scrollY };
+                }
+                originalPanelClass = panel.className;
+                document.body.appendChild(panel);
+                panel.classList.add('popup-elevated');
+
+                // Capture rect BEFORE forcing fixed positioning
+                const rect = panel.getBoundingClientRect();
+                const startLeft = rect.left;
+                const startTop = rect.top;
+                const startW = rect.width;
+                const startH = rect.height;
+
+                // Prepare for animation
+                panel.classList.add('animating-to-popup');
+                Object.assign(panel.style, {
+                    position: 'fixed',
+                    left: startLeft + 'px',
+                    top: startTop + 'px',
+                    width: startW + 'px',
+                    height: startH + 'px',
+                    transform: 'translate(0,0) scale(1)'
+                });
+
+                // Force reflow
+                void panel.offsetWidth;
+
+                // Target size (could make responsive)
+                const targetW = Math.min(700, window.innerWidth - 48);
+                const targetH = targetW * 0.75; // 4:3
+
+                requestAnimationFrame(() => {
+                    Object.assign(panel.style, {
+                        left: '50%',
+                        top: '50%',
+                        width: targetW + 'px',
+                        height: targetH + 'px',
+                        transform: 'translate(-50%, -50%) scale(1)'
+                    });
+                });
+
+                // After animation completes, activate popup mode and blur
+                const ANIM_DURATION = 600;
+                setTimeout(() => {
+                    panelStack.classList.add('popup-open');
+                    document.body.classList.add('image-popup-open');
+                    panel.classList.remove('animating-to-popup');
+                    panel.classList.add('popup-active');
+                    panel.addEventListener('click', closePopup);
+                    // Resize handler (currently not adjusting spotlight since removed)
+                    resizeHandler = null;
+                    animating = false;
+                }, ANIM_DURATION);
+
+                // Disable scrolling
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closePopup() {
+                if (animating) return;
+                if (!popupPanel) return;
+                animating = true;
+
+                // Animate from current center size back to the placeholder's live rect
+                const panelEl = popupPanel;
+                // Get the placeholder's current bounding rect (in case layout changed)
+
+                // Animate back to the original rect, adjusted for scroll difference
+                const scrollDiffX = window.scrollX - originalScroll.x;
+                const scrollDiffY = window.scrollY - originalScroll.y;
+                const endRect = {
+                    left: originalRect.left - scrollDiffX,
+                    top: originalRect.top - scrollDiffY,
+                    width: originalRect.width,
+                    height: originalRect.height
+                };
+                const currentRect = panelEl.getBoundingClientRect();
+
+                panelEl.classList.remove('popup-active');
+                panelEl.classList.add('animating-to-popup');
+                panelEl.style.transition = 'all 600ms cubic-bezier(0.23,1,0.32,1)';
+                // Normalize to absolute current before animating
+                panelEl.style.left = currentRect.left + 'px';
+                panelEl.style.top = currentRect.top + 'px';
+                panelEl.style.width = currentRect.width + 'px';
+                panelEl.style.height = currentRect.height + 'px';
+                panelEl.style.transform = 'translate(0,0)';
+
+                void panelEl.offsetWidth; // reflow
+                requestAnimationFrame(() => {
+                    panelEl.style.left = endRect.left + 'px';
+                    panelEl.style.top = endRect.top + 'px';
+                    panelEl.style.width = endRect.width + 'px';
+                    panelEl.style.height = endRect.height + 'px';
+                    panelEl.style.transform = 'translate(0,0)';
+                });
+
+                // Remove global states immediately so background becomes interactive
+                popupContainer.classList.remove('active');
+                panelStack.classList.remove('popup-open');
+                document.body.classList.remove('image-popup-open');
+                if (resizeHandler) { window.removeEventListener('resize', resizeHandler); resizeHandler = null; }
+                document.body.style.overflow = '';
+
+                setTimeout(() => {
+                    // Put element back into flow
+                    panelEl.classList.remove('animating-to-popup', 'popup-elevated');
+                    panelEl.style.transition = '';
+                    panelEl.style.left = '';
+                    panelEl.style.top = '';
+                    panelEl.style.width = '';
+                    panelEl.style.height = '';
+                    panelEl.style.transform = '';
+                    panelEl.style.position = '';
+                    if (placeholderNode && placeholderNode.parentNode) {
+                        placeholderNode.parentNode.insertBefore(panelEl, placeholderNode);
+                        placeholderNode.remove();
+                        placeholderNode = null;
+                    }
+                    if (originalPanelClass) panelEl.className = originalPanelClass;
+                    // Animate other images back in
+                    panels.forEach(p => p.classList.remove('panel-away'));
+                    popupPanel = null;
+                    originalPanel = null;
+                    originalRect = null;
+                    originalPanelClass = null;
+                    animating = false;
+                }, 600);
+            }
+
+            // Spotlight removed: using global blurred backdrop on wrapper instead.
+
+            // ESC key to close
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && popupPanel) {
+                    closePopup();
+                }
+            });
+
+            // Click outside popup to close
+            popupContainer.addEventListener('click', function(e) {
+                if (e.target === popupContainer) {
+                    closePopup();
+                }
+            });
+
+            // --- Arrow Navigation Setup ---
+            const prevBtn = document.querySelector('.panel-nav-prev');
+            const nextBtn = document.querySelector('.panel-nav-next');
+
+            function positionArrows() {
+                if (!popupPanel || !prevBtn || !nextBtn) return;
+                const rect = popupPanel.getBoundingClientRect();
+                const gap = 16;
+                const arrowW = prevBtn.offsetWidth || 54;
+                const leftPos = Math.max(8, rect.left - gap - arrowW);
+                const rightPosLeft = rect.right + gap;
+                // Prevent off-screen on right
+                const maxLeft = window.innerWidth - arrowW - 8;
+                prevBtn.style.left = Math.min(leftPos, maxLeft) + 'px';
+                prevBtn.style.right = '';
+                nextBtn.style.left = Math.min(rightPosLeft, maxLeft) + 'px';
+                nextBtn.style.right = '';
+                const midY = rect.top + rect.height / 2;
+                prevBtn.style.top = midY + 'px';
+                nextBtn.style.top = midY + 'px';
+                prevBtn.style.transform = 'translateY(-50%)';
+                nextBtn.style.transform = 'translateY(-50%)';
+            }
+            function showArrows() {
+                if (!prevBtn || !nextBtn) return;
+                if (prevBtn.classList.contains('is-visible')) return;
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+                positionArrows();
+                requestAnimationFrame(()=>{
+                    prevBtn.classList.add('is-visible');
+                    nextBtn.classList.add('is-visible');
+                    setTimeout(positionArrows, 60);
+                    setTimeout(positionArrows, 300);
+                    setTimeout(positionArrows, 600);
+                });
+            }
+            function hideArrows() {
+                if (!prevBtn || !nextBtn) return;
+                prevBtn.classList.remove('is-visible');
+                nextBtn.classList.remove('is-visible');
+                setTimeout(()=>{ if(!prevBtn.classList.contains('is-visible')) { prevBtn.style.display='none'; nextBtn.style.display='none'; } }, 450);
+            }
+            function getCurrentIndex() {
+                if (!popupPanel) return -1;
+                return Array.from(panels).indexOf(popupPanel);
+            }
+            function navigate(delta) {
+                if (!popupPanel || animating) return;
+                const list = Array.from(panels);
+                let idx = getCurrentIndex();
+                if (idx === -1) return;
+                const nextIndex = (idx + delta + list.length) % list.length;
+                if (nextIndex === idx) return;
+                const target = list[nextIndex];
+                // Close current then open next after animation completes
+                closePopup();
+                setTimeout(() => { target.click(); }, 620);
+            }
+            if (prevBtn) prevBtn.addEventListener('click', e => { e.stopPropagation(); navigate(-1); });
+            if (nextBtn) nextBtn.addEventListener('click', e => { e.stopPropagation(); navigate(1); });
+            window.addEventListener('resize', () => { if (popupPanel) positionArrows(); });
+            document.addEventListener('keydown', e => {
+                if (!popupPanel) return;
+                if (e.key === 'ArrowLeft') navigate(-1);
+                else if (e.key === 'ArrowRight') navigate(1);
+            });
+
+            // Hook into open/close to show/hide arrows
+            const originalOpen = openPopup;
+            function ensureImageLoaded(img, cb){
+                if (!img) return cb();
+                if (img.complete && img.naturalWidth > 0) { cb(); return; }
+                const onLoad = () => { img.removeEventListener('load', onLoad); cb(); };
+                img.addEventListener('load', onLoad);
+            }
+            openPopup = function(p){
+                originalOpen(p);
+                const targetPanel = p;
+                const startTime = performance.now();
+                const MAX_WAIT = 4000; // ms safety cap
+                const STABLE_SAMPLES = 4; // require N consecutive stable rects
+                const SAMPLE_INTERVAL = 70; // ms between samples
+                let lastRect = null;
+                let stableCount = 0;
+
+                function rectEquals(a,b){
+                    return a && b && Math.abs(a.left-b.left)<0.5 && Math.abs(a.top-b.top)<0.5 && Math.abs(a.width-b.width)<0.5 && Math.abs(a.height-b.height)<0.5;
+                }
+
+                function loop(){
+                    if (!(popupPanel === targetPanel)) return; // aborted / closed
+                    if (performance.now() - startTime > MAX_WAIT) return; // give up silently
+                    // Wait until animation flag cleared & popup-active present
+                    if (animating || !targetPanel.classList.contains('popup-active')) {
+                        setTimeout(loop, SAMPLE_INTERVAL);
+                        return;
+                    }
+                    const current = targetPanel.getBoundingClientRect();
+                    if (rectEquals(current, lastRect)) {
+                        stableCount++;
+                    } else {
+                        stableCount = 0;
+                        lastRect = current;
+                    }
+                    if (stableCount >= STABLE_SAMPLES) {
+                        const img = targetPanel.querySelector('img');
+                        ensureImageLoaded(img, () => {
+                            showArrows();
+                        });
+                        return;
+                    }
+                    setTimeout(loop, SAMPLE_INTERVAL);
+                }
+                loop();
+            };
+            const originalClose = closePopup;
+            closePopup = function(){ originalClose(); hideArrows(); };
+        });
+    </script>
+
     <script src="reviews-new.js"></script>
-    <section id="features" class="pricing-section">
+    <section id="features" class="pricing-section section-blend">
         <div class="container">
             <h2 class="section-title">What is nemesis?</h2>
             <p class="hero-subtitle">nemesis is a external for Roblox and designed to give you a significant advantage over other players. Unlike many of its competitors, nemesis is completely undetected.</p>
@@ -1014,7 +1598,7 @@
         </div>
     </section>
 
-    <section id="screenshots" class="pricing-section">
+    <section id="screenshots" class="pricing-section section-blend">
         <div class="container">
             <h2 class="section-title">See in Action</h2>
             <p class="hero-subtitle">Explore all features with live demonstrations</p>
@@ -1047,7 +1631,7 @@
         </div>
     </section>
 
-    <section id="faq" class="pricing-section">
+    <section id="faq" class="pricing-section section-blend">
         <div class="container">
             <h2 class="section-title">FAQ</h2>
             <div class="pricing-grid">
@@ -1073,7 +1657,7 @@
         </div>
     </section>
 
-    <section id="buy" class="pricing-section">
+    <section id="buy" class="pricing-section section-blend">
         <div class="container">
             <h2 class="section-title">Ready to Get Started?</h2>
             <p class="hero-subtitle">Join the nemesis community today</p>
@@ -1084,7 +1668,7 @@
     <!-- Reviews Section -->
         <!-- Reviews Section -->
         <!-- Reviews Section -->
-    <section class="reviews" id="reviews">
+    <section class="reviews section-blend" id="reviews">
         <div class="container">
             <h2 class="section-title">What Our Users Say</h2>
             <p class="section-subtitle">Real reviews from our Discord community</p>
@@ -1106,13 +1690,55 @@
     </script>
 
     <style>
+        /* Arrow button styling (placed near reviews style block for now) */
+        .panel-nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 54px;
+            height: 54px;
+            border: 1px solid rgba(232,187,249,0.35);
+            background: rgba(10,10,16,0.55);
+            color: #E8BBF9;
+            font-size: 26px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2147483646;
+            backdrop-filter: blur(6px) saturate(160%);
+            -webkit-backdrop-filter: blur(6px) saturate(160%);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(232,187,249,0.15);
+            transition: background .3s ease, border-color .3s ease, transform .4s cubic-bezier(.22,.9,.3,1), color .3s ease, opacity .45s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .panel-nav-arrow:hover { background: rgba(20,20,28,0.75); border-color: rgba(232,187,249,0.55); color: #fff; }
+        .panel-nav-arrow:active { transform: translateY(-50%) scale(.92); }
+        .panel-nav-prev { left: 40px; }
+        .panel-nav-next { right: 40px; }
+        .panel-nav-arrow.is-visible { opacity:1; pointer-events:auto; animation: arrowPop .5s cubic-bezier(.22,.9,.3,1); }
+        @keyframes arrowPop { 0% { opacity:0; transform: translateY(-50%) scale(.82); } 60% { opacity:1; transform: translateY(-50%) scale(1.04); } 100% { opacity:1; transform: translateY(-50%) scale(1); } }
+        @media (max-width: 900px) {
+            .panel-nav-prev { left: 12px; }
+            .panel-nav-next { right: 12px; }
+            .panel-nav-arrow { width: 46px; height: 46px; font-size: 22px; }
+        }
         .reviews {
             width: 100%;
             display: flex;
             justify-content: center;
             padding: 4rem 0;
             position: relative;
-            background: rgba(0, 0, 0, 0.3);
+            background: #101014;
+            border-radius: 18px;
+            box-shadow: 0 2px 24px 0 rgba(0,0,0,0.18), 0 1.5px 6px 0 rgba(232,187,249,0.04);
+            margin: 6rem auto 3rem auto; /* push below fixed navbar */
+            max-width: 1200px;
+            z-index: 1; /* keep below navbar */
+            scroll-margin-top: 100px; /* anchor offset when using #reviews link */
         }
 
         .reviews::before {
@@ -1168,57 +1794,38 @@
             margin: 0 auto;
         }
 
-        .review-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            min-height: 200px;
-            position: relative;
-            transition: all 0.4s ease;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .review-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(
-                135deg,
-                transparent,
-                rgba(232, 187, 249, 0.03),
-                transparent
-            );
-            z-index: -1;
-            transition: opacity 0.4s ease;
-            opacity: 0;
-        }
-
-        .review-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(232, 187, 249, 0.3);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .review-card:hover::before {
-            opacity: 1;
+        /* Clean duplicate review-card blocks removed above */
+        .hero-centered { min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center; }
+        .hero-centered .hero-inner { max-width:780px; margin:0 auto; padding:40px 20px; }
+        .hero-centered .hero-title { margin-bottom:14px; }
+        .hero-centered .hero-subtitle { max-width:640px; margin:0 auto 34px; }
+        .hero-centered .hero-cta { width:auto; display:inline-block; }
+        .preview-centered { padding:120px 20px 140px; }
+        .preview-centered .container { max-width:1400px; margin:0 auto; }
+        .preview-centered .section-title { text-align:center; }
+        .preview-centered .hero-subtitle { text-align:center; }
+        @media (max-width: 900px){
+            .panel-stack { height:600px; }
+            .hero-centered { min-height:60vh; }
+            .pricing-card { min-height:240px; }
         }
 
         .review-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.1rem;
+            gap: 1rem;
         }
 
         .review-avatar {
-            width: 56px;
-            height: 56px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            margin-right: 1rem;
+            margin-right: 0;
             overflow: hidden;
             position: relative;
+            box-shadow: 0 1.5px 6px 0 rgba(232,187,249,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.10);
+            border: 1.5px solid rgba(232, 187, 249, 0.18);
         }
 
         .avatar-img {
@@ -1232,58 +1839,60 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: rgba(232, 187, 249, 0.1);
-            border: 1px solid rgba(232, 187, 249, 0.2);
+            background: #18181e;
+            border: 1px solid rgba(232, 187, 249, 0.13);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 400;
-            color: rgba(243, 230, 251, 0.9);
-            font-size: 1.2rem;
-            letter-spacing: 1px;
+            font-weight: 500;
+            color: #E8BBF9;
+            font-size: 1.1rem;
+            letter-spacing: 1.2px;
         }
 
         .review-info h4 {
             color: #fff;
-            margin-bottom: 0.25rem;
-            font-size: 1.1rem;
-            font-weight: 400;
+            margin-bottom: 0.18rem;
+            font-size: 1.08rem;
+            font-weight: 500;
             letter-spacing: 0.5px;
         }
 
         .review-date {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(232, 187, 249, 0.32);
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
 
         .review-content {
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1.5rem;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 1.1rem;
             flex-grow: 1;
             line-height: 1.7;
-            font-size: 0.95rem;
+            font-size: 1.01rem;
             letter-spacing: 0.3px;
+            text-align: left;
         }
 
         .review-rating {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.7rem;
             margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.8rem;
+            border-top: 1px solid rgba(232, 187, 249, 0.08);
         }
 
         .stars {
             color: #E8BBF9;
-            letter-spacing: 3px;
-            font-size: 1.1rem;
+            letter-spacing: 2px;
+            font-size: 1.13rem;
+            text-shadow: none;
         }
 
         .rating-text {
-            color: rgba(191, 162, 214, 0.8);
-            font-size: 0.9rem;
+            color: #C38EE1;
+            font-size: 0.93rem;
             letter-spacing: 0.5px;
         }
 
@@ -1377,7 +1986,7 @@
     </style>
 
     <!-- Live Stats Section (at very bottom, styled) -->
-    <section id="stats" class="pricing-section">
+    <section id="stats" class="pricing-section section-blend">
         <div class="container">
             <h2 class="section-title">Live Stats</h2>
             <div class="pricing-grid">

@@ -46,9 +46,28 @@
     /* Toggle Buttons */
     .type-toggle{margin:20px 0}
     .toggle-buttons{display:flex;gap:8px;justify-content:center}
-    .toggle-btn{padding:12px 24px;border:1px solid rgba(232,187,249,0.3);background:transparent;color:rgba(232,187,249,0.8);border-radius:8px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem;font-weight:500}
+    .toggle-btn{
+        padding:12px 24px;
+        border:1px solid rgba(232,187,249,0.3);
+        background:transparent;
+        color:rgba(232,187,249,0.8);
+        border-radius:8px;
+        cursor:pointer;
+        transition:all 0.3s ease;
+        font-size:0.9rem;
+        font-weight:500;
+        min-width:120px;
+        text-align:center;
+        box-sizing:border-box;
+        white-space:nowrap;
+    }
     .toggle-btn:hover{border-color:rgba(232,187,249,0.6);color:#E8BBF9}
-    .toggle-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;border-color:transparent;font-weight:600}
+    .toggle-btn.active{
+        background:linear-gradient(135deg,var(--accent),var(--accent-2));
+        color:#000;
+        border-color:transparent;
+        font-weight:500;
+    }
     
     @media (max-width:720px){h1{font-size:1.7rem}.container{margin:92px auto}}
   </style>

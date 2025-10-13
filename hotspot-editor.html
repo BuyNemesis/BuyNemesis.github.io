@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotspot Editor - Nemesis Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #E8BBF9;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-section {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .control-section h4 {
+            color: #E8BBF9;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .btn-small {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+        
+        .btn-toggle { background: #28a745; }
+        .btn-dropdown { background: #007bff; }
+        .btn-tab { background: #fd7e14; }
+        .btn-slider { background: #6f42c1; }
+        .btn-button { background: #17a2b8; }
+        .btn-delete { background: #dc3545; }
+        .btn-clear { background: #6c757d; }
+        .btn-generate { background: #E8BBF9; color: black; }
+        .btn-tool { background: #495057; }
+        .btn-preset { background: #20c997; }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .editor-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .image-editor {
+            flex: 1;
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .image-container.show-grid {
+            background-image: 
+                linear-gradient(rgba(232,187,249,0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(232,187,249,0.3) 1px, transparent 1px);
+        }
+        
+        .panel-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+        }
+        
+        .hotspot-overlay {
+            position: absolute;
+            border: 2px solid;
+            border-radius: 4px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+            min-width: 20px;
+            min-height: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .hotspot-toggle { border-color: #28a745; background: rgba(40, 167, 69, 0.3); color: #28a745; }
+        .hotspot-dropdown { border-color: #007bff; background: rgba(0, 123, 255, 0.3); color: #007bff; }
+        .hotspot-tab { border-color: #fd7e14; background: rgba(253, 126, 20, 0.3); color: #fd7e14; }
+        .hotspot-slider { border-color: #6f42c1; background: rgba(111, 66, 193, 0.3); color: #6f42c1; }
+        .hotspot-button { border-color: #17a2b8; background: rgba(23, 162, 184, 0.3); color: #17a2b8; }
+        
+        .hotspot-overlay:hover {
+            opacity: 0.8;
+            cursor: move;
+        }
+        
+        .hotspot-overlay:active {
+            cursor: move;
+        }
+        
+        .hotspot-overlay.selected {
+            border-width: 3px;
+            box-shadow: 0 0 10px rgba(232, 187, 249, 0.6);
+        }
+        
+        .resize-handle {
+            position: absolute;
+            background: #E8BBF9;
+            border: 1px solid #fff;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            z-index: 1000;
+        }
+        
+        .resize-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+        .resize-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
+        .resize-handle.n { top: -4px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .resize-handle.s { bottom: -4px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .resize-handle.w { left: -4px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+        .resize-handle.e { right: -4px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+        
+        .sidebar {
+            width: 350px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .hotspot-list {
+            margin-bottom: 20px;
+        }
+        
+        .hotspot-item {
+            background: #3a3a3a;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .hotspot-item:hover {
+            background: #4a4a4a;
+        }
+        
+        .hotspot-item.selected {
+            background: #5a5a5a;
+            box-shadow: 0 0 10px rgba(232, 187, 249, 0.3);
+        }
+        
+        .hotspot-item.toggle { border-left-color: #28a745; }
+        .hotspot-item.dropdown { border-left-color: #007bff; }
+        .hotspot-item.tab { border-left-color: #fd7e14; }
+        .hotspot-item.slider { border-left-color: #6f42c1; }
+        .hotspot-item.button { border-left-color: #17a2b8; }
+        
+        .edit-panel {
+            background: #3a3a3a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #E8BBF9;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #2a2a2a;
+            color: white;
+        }
+        
+        .form-group textarea {
+            height: 60px;
+            resize: vertical;
+        }
+        
+        .code-output {
+            background: #1a1a1a;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .instructions {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #E8BBF9;
+        }
+        
+        .instructions h3 {
+            color: #E8BBF9;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Hotspot Editor for Nemesis Panel</h1>
+        <p>Drag boxes over your panel image to create interactive hotspots</p>
+    </div>
+
+    <div class="instructions">
+        <h3>How to Use:</h3>
+        <ul>
+            <li><strong>1.</strong> Select a hotspot type (Toggle, Dropdown, Tab, Slider, Button)</li>
+            <li><strong>2.</strong> Click and drag on the image to create a hotspot box</li>
+            <li><strong>3.</strong> Fill in the name and description for each hotspot</li>
+            <li><strong>4.</strong> Click "Generate Code" to get the JavaScript array</li>
+            <li><strong>5.</strong> Copy the code and send it to me to update the panel</li>
+        </ul>
+    </div>
+
+    <div class="image-selector" style="text-align: center; margin-bottom: 20px; background: #2a2a2a; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #E8BBF9; margin-bottom: 15px;">📁 Select Panel Image</h3>
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="loadImage(this)">
+        <button class="btn btn-generate" onclick="document.getElementById('imageInput').click()">📂 Choose Image File</button>
+        <p style="color: #888; margin-top: 10px; font-size: 14px;" id="imageStatus">No image selected</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-section">
+            <h4>🎯 Hotspot Types</h4>
+            <div class="control-row">
+                <button class="btn btn-toggle btn-small" onclick="setMode('toggle')">✅ Toggle</button>
+                <button class="btn btn-dropdown btn-small" onclick="setMode('dropdown')">📋 Dropdown</button>
+                <button class="btn btn-tab btn-small" onclick="setMode('tab')">📑 Tab</button>
+                <button class="btn btn-slider btn-small" onclick="setMode('slider')">🎚️ Slider</button>
+                <button class="btn btn-button btn-small" onclick="setMode('button')">🔘 Button</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <h4>🛠️ Tools</h4>
+            <div class="control-row">
+                <button class="btn btn-tool btn-small" onclick="toggleGrid()">📐 Grid</button>
+                <button class="btn btn-tool btn-small" onclick="toggleSnap()">🧲 Snap</button>
+                <button class="btn btn-tool btn-small" onclick="duplicateSelected()">📋 Copy</button>
+                <button class="btn btn-tool btn-small" onclick="alignSelected('left')">⬅️ Left</button>
+                <button class="btn btn-tool btn-small" onclick="alignSelected('center')">↕️ Center</button>
+                <button class="btn btn-tool btn-small" onclick="alignSelected('right')">➡️ Right</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <h4>🎨 Quick Presets</h4>
+            <div class="control-row">
+                <button class="btn btn-preset btn-small" onclick="createPreset('aimbot')">🎯 Aimbot</button>
+                <button class="btn btn-preset btn-small" onclick="createPreset('esp')">👁️ ESP</button>
+                <button class="btn btn-preset btn-small" onclick="createPreset('misc')">⚙️ Misc</button>
+                <button class="btn btn-preset btn-small" onclick="createPreset('slider')">🎚️ FOV Slider</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <h4>🗑️ Actions</h4>
+            <div class="control-row">
+                <button class="btn btn-delete btn-small" onclick="deleteSelected()">🗑️ Delete</button>
+                <button class="btn btn-clear btn-small" onclick="clearAll()">🧹 Clear All</button>
+                <button class="btn btn-generate" onclick="generateCode()">⚡ Generate Code</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <div class="image-editor">
+            <div class="image-container" id="imageContainer" style="display: none;">
+                <img src="" alt="Panel Image" class="panel-image" id="panelImage">
+            </div>
+            <div id="noImageMessage" style="text-align: center; padding: 100px 20px; color: #888; background: #2a2a2a; border-radius: 10px; border: 2px dashed #555;">
+                <h3 style="color: #E8BBF9; margin-bottom: 10px;">🖼️ No Image Selected</h3>
+                <p>Click "Choose Image File" above to load your panel screenshot</p>
+                <p style="font-size: 14px; margin-top: 10px;">Supported formats: PNG, JPG, GIF, WebP</p>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h3 style="color: #E8BBF9; margin-bottom: 15px;">Hotspots</h3>
+            <div class="hotspot-list" id="hotspotList">
+                <p style="color: #888;">No hotspots created yet. Click and drag on the image to start.</p>
+            </div>
+
+            <div class="edit-panel" id="editPanel" style="display: none;">
+                <h4 style="color: #E8BBF9; margin-bottom: 10px;">Edit Hotspot</h4>
+                
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="hotspotName" placeholder="e.g., Enable Aimbot">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="hotspotDescription" placeholder="e.g., Toggle aimbot on or off"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Click Description:</label>
+                    <textarea id="hotspotClickDescription" placeholder="e.g., Aimbot has been toggled on/off"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Type:</label>
+                    <select id="hotspotType">
+                        <option value="toggle">Toggle/Checkbox</option>
+                        <option value="dropdown">Dropdown</option>
+                        <option value="tab">Tab</option>
+                        <option value="slider">Slider</option>
+                        <option value="button">Button</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-generate" onclick="updateSelectedHotspot()">💾 Update Hotspot</button>
+            </div>
+
+            <div class="code-output" id="codeOutput">
+                <strong style="color: #E8BBF9;">Generated code will appear here...</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class HotspotEditor {
+            constructor() {
+                this.hotspots = [];
+                this.selectedHotspot = null;
+                this.currentMode = 'toggle';
+                this.isDragging = false;
+                this.isMoving = false;
+                this.isResizing = false;
+                this.movingHotspot = null;
+                this.resizingHotspot = null;
+                this.resizeDirection = '';
+                this.startX = 0;
+                this.startY = 0;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                this.originalX = 0;
+                this.originalY = 0;
+                this.originalWidth = 0;
+                this.originalHeight = 0;
+                this.gridSize = 10;
+                this.snapEnabled = false;
+                this.gridVisible = false;
+                this.imageContainer = document.getElementById('imageContainer');
+                this.panelImage = document.getElementById('panelImage');
+                this.hotspotList = document.getElementById('hotspotList');
+                this.editPanel = document.getElementById('editPanel');
+                this.codeOutput = document.getElementById('codeOutput');
+                
+                this.init();
+            }
+
+            init() {
+                this.imageContainer.addEventListener('mousedown', this.onMouseDown.bind(this));
+                this.imageContainer.addEventListener('mousemove', this.onMouseMove.bind(this));
+                this.imageContainer.addEventListener('mouseup', this.onMouseUp.bind(this));
+                this.imageContainer.addEventListener('mouseleave', this.onMouseUp.bind(this)); // Fix sticky mouse
+                
+                // Prevent context menu and drag events
+                this.imageContainer.addEventListener('contextmenu', e => e.preventDefault());
+                this.imageContainer.addEventListener('dragstart', e => e.preventDefault());
+                this.imageContainer.addEventListener('drag', e => e.preventDefault());
+                this.imageContainer.addEventListener('dragend', e => e.preventDefault());
+                
+                // Global mouse events to fix sticky drag
+                document.addEventListener('mouseup', this.onMouseUp.bind(this));
+                document.addEventListener('mouseleave', this.onMouseUp.bind(this));
+                
+                this.updateUI();
+            }
+
+            onMouseDown(e) {
+                // Only handle mousedown on the image itself (for creating new hotspots)
+                if (e.target === this.panelImage) {
+                    // Creating new hotspot
+                    this.isDragging = true;
+                    const rect = this.panelImage.getBoundingClientRect();
+                    this.startX = e.clientX - rect.left;
+                    this.startY = e.clientY - rect.top;
+                    
+                    if (this.snapEnabled) {
+                        this.startX = Math.round(this.startX / this.gridSize) * this.gridSize;
+                        this.startY = Math.round(this.startY / this.gridSize) * this.gridSize;
+                    }
+                    
+                    // Create new hotspot
+                    const hotspot = {
+                        id: Date.now(),
+                        type: this.currentMode,
+                        x: this.startX,
+                        y: this.startY,
+                        width: 0,
+                        height: 0,
+                        name: `${this.currentMode.charAt(0).toUpperCase() + this.currentMode.slice(1)} ${this.hotspots.length + 1}`,
+                        description: '',
+                        clickDescription: ''
+                    };
+                    
+                    this.hotspots.push(hotspot);
+                    this.createHotspotElement(hotspot);
+                }
+                // Hotspot mousedown is now handled in createHotspotElement
+            }
+
+            onMouseMove(e) {
+                if (this.isDragging) {
+                    // Resizing new hotspot
+                    const rect = this.panelImage.getBoundingClientRect();
+                    let currentX = e.clientX - rect.left;
+                    let currentY = e.clientY - rect.top;
+                    
+                    if (this.snapEnabled) {
+                        currentX = Math.round(currentX / this.gridSize) * this.gridSize;
+                        currentY = Math.round(currentY / this.gridSize) * this.gridSize;
+                    }
+                    
+                    const lastHotspot = this.hotspots[this.hotspots.length - 1];
+                    lastHotspot.width = Math.abs(currentX - this.startX);
+                    lastHotspot.height = Math.abs(currentY - this.startY);
+                    lastHotspot.x = Math.min(this.startX, currentX);
+                    lastHotspot.y = Math.min(this.startY, currentY);
+                    
+                    this.updateHotspotElement(lastHotspot);
+                } else if (this.isMoving && this.movingHotspot) {
+                    // Moving existing hotspot
+                    const rect = this.panelImage.getBoundingClientRect();
+                    let newX = e.clientX - rect.left - this.offsetX;
+                    let newY = e.clientY - rect.top - this.offsetY;
+                    
+                    if (this.snapEnabled) {
+                        newX = Math.round(newX / this.gridSize) * this.gridSize;
+                        newY = Math.round(newY / this.gridSize) * this.gridSize;
+                    }
+                    
+                    // Keep hotspot within image bounds
+                    this.movingHotspot.x = Math.max(0, Math.min(newX, rect.width - this.movingHotspot.width));
+                    this.movingHotspot.y = Math.max(0, Math.min(newY, rect.height - this.movingHotspot.height));
+                    
+                    this.updateHotspotElement(this.movingHotspot);
+                } else if (this.isResizing && this.resizingHotspot) {
+                    // Resizing existing hotspot
+                    const rect = this.panelImage.getBoundingClientRect();
+                    let currentX = e.clientX - rect.left;
+                    let currentY = e.clientY - rect.top;
+                    
+                    if (this.snapEnabled) {
+                        currentX = Math.round(currentX / this.gridSize) * this.gridSize;
+                        currentY = Math.round(currentY / this.gridSize) * this.gridSize;
+                    }
+                    
+                    this.handleResize(currentX, currentY);
+                    this.updateHotspotElement(this.resizingHotspot);
+                }
+            }
+
+            onMouseUp(e) {
+                // Force stop all dragging operations
+                this.isDragging = false;
+                this.isMoving = false;
+                this.isResizing = false;
+                this.movingHotspot = null;
+                this.resizingHotspot = null;
+                this.resizeDirection = '';
+                
+                // Handle new hotspot creation
+                if (this.hotspots.length > 0) {
+                    const lastHotspot = this.hotspots[this.hotspots.length - 1];
+                    if (lastHotspot.width < 10 || lastHotspot.height < 10) {
+                        this.removeHotspot(lastHotspot.id);
+                    } else if (lastHotspot.width === 0 || lastHotspot.height === 0) {
+                        // Don't auto-select if it was just created but has no size
+                    } else {
+                        // Only select if it's a properly sized new hotspot
+                        if (!this.selectedHotspot || this.selectedHotspot.id !== lastHotspot.id) {
+                            this.selectHotspot(lastHotspot.id);
+                        }
+                    }
+                }
+                
+                this.updateUI();
+            }
+
+            createHotspotElement(hotspot) {
+                const element = document.createElement('div');
+                element.className = `hotspot-overlay hotspot-${hotspot.type}`;
+                element.id = `hotspot-${hotspot.id}`;
+                element.textContent = hotspot.type.charAt(0).toUpperCase();
+                element.title = 'Click to select, drag to move, drag edges to resize';
+                element.draggable = false;
+                
+                let mouseDownTime = 0;
+                let isDraggingHotspot = false;
+                
+                element.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    mouseDownTime = Date.now();
+                    isDraggingHotspot = false;
+                    
+                    // Start drag immediately on mousedown
+                    this.isMoving = true;
+                    this.movingHotspot = hotspot;
+                    
+                    const rect = this.panelImage.getBoundingClientRect();
+                    this.offsetX = e.clientX - rect.left - hotspot.x;
+                    this.offsetY = e.clientY - rect.top - hotspot.y;
+                });
+                
+                element.addEventListener('mousemove', (e) => {
+                    if (this.isMoving && this.movingHotspot === hotspot) {
+                        isDraggingHotspot = true;
+                    }
+                });
+                
+                element.addEventListener('mouseup', (e) => {
+                    e.stopPropagation();
+                    
+                    // Force stop movement
+                    this.isMoving = false;
+                    this.movingHotspot = null;
+                    
+                    const clickDuration = Date.now() - mouseDownTime;
+                    
+                    // If it was a quick click (less than 200ms) and no dragging occurred
+                    if (clickDuration < 200 && !isDraggingHotspot) {
+                        this.selectHotspot(hotspot.id);
+                    }
+                    
+                    isDraggingHotspot = false;
+                });
+                
+                this.imageContainer.appendChild(element);
+                this.updateHotspotElement(hotspot);
+            }
+
+            createResizeHandles(hotspot) {
+                // Remove existing handles
+                document.querySelectorAll('.resize-handle').forEach(el => el.remove());
+                
+                if (!this.selectedHotspot || this.selectedHotspot.id !== hotspot.id) return;
+                
+                const directions = ['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'];
+                
+                directions.forEach(direction => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle ${direction}`;
+                    handle.dataset.direction = direction;
+                    handle.dataset.hotspotId = hotspot.id;
+                    
+                    handle.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        
+                        this.isResizing = true;
+                        this.resizingHotspot = hotspot;
+                        this.resizeDirection = direction;
+                        
+                        const rect = this.panelImage.getBoundingClientRect();
+                        this.startX = e.clientX - rect.left;
+                        this.startY = e.clientY - rect.top;
+                        this.originalX = hotspot.x;
+                        this.originalY = hotspot.y;
+                        this.originalWidth = hotspot.width;
+                        this.originalHeight = hotspot.height;
+                    });
+                    
+                    handle.addEventListener('mouseup', (e) => {
+                        e.stopPropagation();
+                        this.isResizing = false;
+                        this.resizingHotspot = null;
+                        this.resizeDirection = '';
+                    });
+                    
+                    const hotspotElement = document.getElementById(`hotspot-${hotspot.id}`);
+                    hotspotElement.appendChild(handle);
+                });
+            }
+
+            handleResize(currentX, currentY) {
+                const hotspot = this.resizingHotspot;
+                const direction = this.resizeDirection;
+                const deltaX = currentX - this.startX;
+                const deltaY = currentY - this.startY;
+                
+                let newX = this.originalX;
+                let newY = this.originalY;
+                let newWidth = this.originalWidth;
+                let newHeight = this.originalHeight;
+                
+                // Handle horizontal resizing
+                if (direction.includes('w')) {
+                    newX = this.originalX + deltaX;
+                    newWidth = this.originalWidth - deltaX;
+                } else if (direction.includes('e')) {
+                    newWidth = this.originalWidth + deltaX;
+                }
+                
+                // Handle vertical resizing
+                if (direction.includes('n')) {
+                    newY = this.originalY + deltaY;
+                    newHeight = this.originalHeight - deltaY;
+                } else if (direction.includes('s')) {
+                    newHeight = this.originalHeight + deltaY;
+                }
+                
+                // Ensure minimum size
+                if (newWidth < 20) {
+                    if (direction.includes('w')) newX = this.originalX + this.originalWidth - 20;
+                    newWidth = 20;
+                }
+                if (newHeight < 20) {
+                    if (direction.includes('n')) newY = this.originalY + this.originalHeight - 20;
+                    newHeight = 20;
+                }
+                
+                // Keep within image bounds
+                const imageRect = this.panelImage.getBoundingClientRect();
+                newX = Math.max(0, Math.min(newX, imageRect.width - newWidth));
+                newY = Math.max(0, Math.min(newY, imageRect.height - newHeight));
+                newWidth = Math.min(newWidth, imageRect.width - newX);
+                newHeight = Math.min(newHeight, imageRect.height - newY);
+                
+                hotspot.x = newX;
+                hotspot.y = newY;
+                hotspot.width = newWidth;
+                hotspot.height = newHeight;
+            }
+
+            updateHotspotElement(hotspot) {
+                const element = document.getElementById(`hotspot-${hotspot.id}`);
+                if (element) {
+                    const imageRect = this.panelImage.getBoundingClientRect();
+                    const containerRect = this.imageContainer.getBoundingClientRect();
+                    
+                    element.style.left = hotspot.x + 'px';
+                    element.style.top = hotspot.y + 'px';
+                    element.style.width = hotspot.width + 'px';
+                    element.style.height = hotspot.height + 'px';
+                }
+            }
+
+            selectHotspot(id) {
+                // Remove previous selection
+                document.querySelectorAll('.hotspot-overlay').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.hotspot-item').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.resize-handle').forEach(el => el.remove());
+                
+                this.selectedHotspot = this.hotspots.find(h => h.id === id);
+                
+                if (this.selectedHotspot) {
+                    document.getElementById(`hotspot-${id}`).classList.add('selected');
+                    document.getElementById(`item-${id}`).classList.add('selected');
+                    
+                    // Create resize handles for selected hotspot
+                    this.createResizeHandles(this.selectedHotspot);
+                    
+                    // Populate edit form
+                    document.getElementById('hotspotName').value = this.selectedHotspot.name;
+                    document.getElementById('hotspotDescription').value = this.selectedHotspot.description;
+                    document.getElementById('hotspotClickDescription').value = this.selectedHotspot.clickDescription;
+                    document.getElementById('hotspotType').value = this.selectedHotspot.type;
+                    
+                    this.editPanel.style.display = 'block';
+                }
+            }
+
+            removeHotspot(id) {
+                this.hotspots = this.hotspots.filter(h => h.id !== id);
+                const element = document.getElementById(`hotspot-${id}`);
+                if (element) element.remove();
+                
+                if (this.selectedHotspot && this.selectedHotspot.id === id) {
+                    this.selectedHotspot = null;
+                    this.editPanel.style.display = 'none';
+                }
+                
+                this.updateUI();
+            }
+
+            updateSelectedHotspot() {
+                if (this.selectedHotspot) {
+                    this.selectedHotspot.name = document.getElementById('hotspotName').value;
+                    this.selectedHotspot.description = document.getElementById('hotspotDescription').value;
+                    this.selectedHotspot.clickDescription = document.getElementById('hotspotClickDescription').value;
+                    this.selectedHotspot.type = document.getElementById('hotspotType').value;
+                    
+                    // Update visual elements
+                    const element = document.getElementById(`hotspot-${this.selectedHotspot.id}`);
+                    element.className = `hotspot-overlay hotspot-${this.selectedHotspot.type} selected`;
+                    
+                    // Recreate resize handles with updated styling
+                    this.createResizeHandles(this.selectedHotspot);
+                    
+                    this.updateUI();
+                }
+            }
+
+            updateUI() {
+                // Update hotspot list
+                if (this.hotspots.length === 0) {
+                    this.hotspotList.innerHTML = '<p style="color: #888;">No hotspots created yet. Click and drag on the image to start.</p>';
+                } else {
+                    this.hotspotList.innerHTML = this.hotspots.map(hotspot => `
+                        <div class="hotspot-item ${hotspot.type}" id="item-${hotspot.id}" onclick="editor.selectHotspot(${hotspot.id})">
+                            <strong>${hotspot.name}</strong><br>
+                            <small>${hotspot.type} • ${Math.round(hotspot.width)}×${Math.round(hotspot.height)}</small>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            generateCode() {
+                const imageRect = this.panelImage.getBoundingClientRect();
+                
+                const code = this.hotspots.map(hotspot => {
+                    const xPercent = (hotspot.x / imageRect.width * 100).toFixed(1);
+                    const yPercent = (hotspot.y / imageRect.height * 100).toFixed(1);
+                    const widthPercent = (hotspot.width / imageRect.width * 100).toFixed(1);
+                    const heightPercent = (hotspot.height / imageRect.height * 100).toFixed(1);
+                    
+                    return `                {
+                    name: '${hotspot.name}',
+                    description: '${hotspot.description}',
+                    clickDescription: '${hotspot.clickDescription}',
+                    x: ${xPercent}, y: ${yPercent}, width: ${widthPercent}, height: ${heightPercent},
+                    action: '${hotspot.type}',
+                    actionData: { feature: '${hotspot.name}', ${hotspot.type === 'toggle' ? 'enabled: true' : hotspot.type === 'slider' ? 'value: 50' : hotspot.type === 'button' ? 'section: \'${hotspot.name.toLowerCase()}\'' : 'option: \'Option 1\''} }
+                }`;
+                }).join(',\n');
+
+                this.codeOutput.innerHTML = `<pre style="color: #E8BBF9;">[\n${code}\n]</pre>`;
+                
+                // Auto-select the code for easy copying
+                const range = document.createRange();
+                range.selectNode(this.codeOutput);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            }
+        }
+
+        // Global functions
+        let editor;
+
+        function loadImage(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const panelImage = document.getElementById('panelImage');
+                    const imageContainer = document.getElementById('imageContainer');
+                    const noImageMessage = document.getElementById('noImageMessage');
+                    const imageStatus = document.getElementById('imageStatus');
+                    
+                    panelImage.src = e.target.result;
+                    panelImage.draggable = false; // Prevent image drag
+                    imageContainer.style.display = 'inline-block';
+                    noImageMessage.style.display = 'none';
+                    imageStatus.textContent = `Loaded: ${file.name}`;
+                    imageStatus.style.color = '#28a745';
+                    
+                    // Clear any existing hotspots when loading new image
+                    if (editor) {
+                        editor.hotspots = [];
+                        editor.selectedHotspot = null;
+                        editor.editPanel.style.display = 'none';
+                        document.querySelectorAll('.hotspot-overlay').forEach(el => el.remove());
+                        document.querySelectorAll('.resize-handle').forEach(el => el.remove());
+                        editor.updateUI();
+                        editor.codeOutput.innerHTML = '<strong style="color: #E8BBF9;">Generated code will appear here...</strong>';
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function toggleGrid() {
+            editor.gridVisible = !editor.gridVisible;
+            const container = document.getElementById('imageContainer');
+            if (editor.gridVisible) {
+                container.classList.add('show-grid');
+            } else {
+                container.classList.remove('show-grid');
+            }
+        }
+
+        function toggleSnap() {
+            editor.snapEnabled = !editor.snapEnabled;
+            const btn = event.target;
+            btn.style.opacity = editor.snapEnabled ? '1' : '0.5';
+            btn.textContent = editor.snapEnabled ? '🧲 Snap (5px)' : '🧲 Snap (Off)';
+            
+            // Use smaller grid for better precision
+            editor.gridSize = editor.snapEnabled ? 5 : 1;
+        }
+
+        function duplicateSelected() {
+            if (editor.selectedHotspot) {
+                const original = editor.selectedHotspot;
+                const duplicate = {
+                    ...original,
+                    id: Date.now(),
+                    x: original.x + 20,
+                    y: original.y + 20,
+                    name: original.name + ' Copy'
+                };
+                editor.hotspots.push(duplicate);
+                editor.createHotspotElement(duplicate);
+                editor.selectHotspot(duplicate.id);
+                editor.updateUI();
+            }
+        }
+
+        function alignSelected(direction) {
+            if (!editor.selectedHotspot) return;
+            
+            const imageRect = editor.panelImage.getBoundingClientRect();
+            const hotspot = editor.selectedHotspot;
+            
+            switch(direction) {
+                case 'left':
+                    hotspot.x = 0;
+                    break;
+                case 'center':
+                    hotspot.x = (imageRect.width - hotspot.width) / 2;
+                    break;
+                case 'right':
+                    hotspot.x = imageRect.width - hotspot.width;
+                    break;
+            }
+            
+            editor.updateHotspotElement(hotspot);
+            editor.updateUI();
+        }
+
+        function createPreset(type) {
+            const presets = {
+                aimbot: { name: 'Enable Aimbot', description: 'Toggle aimbot functionality', width: 80, height: 20, type: 'toggle' },
+                esp: { name: 'ESP Players', description: 'Show player ESP boxes', width: 80, height: 20, type: 'toggle' },
+                misc: { name: 'Misc Settings', description: 'Miscellaneous options', width: 100, height: 25, type: 'dropdown' },
+                slider: { name: 'FOV Slider', description: 'Adjust field of view', width: 120, height: 20, type: 'slider' }
+            };
+            
+            const preset = presets[type];
+            if (!preset) return;
+            
+            const hotspot = {
+                id: Date.now(),
+                type: preset.type,
+                x: 50,
+                y: 50,
+                width: preset.width,
+                height: preset.height,
+                name: preset.name,
+                description: preset.description,
+                clickDescription: `${preset.name} activated`
+            };
+            
+            editor.hotspots.push(hotspot);
+            editor.createHotspotElement(hotspot);
+            editor.selectHotspot(hotspot.id);
+            editor.updateUI();
+        }
+
+        function setMode(mode) {
+            editor.currentMode = mode;
+            
+            // Update button styles
+            document.querySelectorAll('.controls .btn').forEach(btn => {
+                btn.style.opacity = '0.7';
+            });
+            
+            document.querySelector(`.btn-${mode}`).style.opacity = '1';
+        }
+
+        function deleteSelected() {
+            if (editor.selectedHotspot) {
+                editor.removeHotspot(editor.selectedHotspot.id);
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all hotspots?')) {
+                editor.hotspots = [];
+                editor.selectedHotspot = null;
+                editor.editPanel.style.display = 'none';
+                document.querySelectorAll('.hotspot-overlay').forEach(el => el.remove());
+                editor.updateUI();
+                editor.codeOutput.innerHTML = '<strong style="color: #E8BBF9;">Generated code will appear here...</strong>';
+            }
+        }
+
+        function generateCode() {
+            editor.generateCode();
+        }
+
+        // Initialize editor when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            editor = new HotspotEditor();
+            setMode('toggle'); // Default mode
+        });
+    </script>
+</body>
+</html>
