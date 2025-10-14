@@ -289,10 +289,11 @@
     </div>
 
     <script>
-        // Feature videos cache from Discord
+        // Feature videos and images cache from Discord
         let featureVideos = {};
+        let espImages = { noESP: null, withESP: null };
         
-        // Fetch feature videos from Discord via backend
+        // Fetch feature videos and images from Discord via backend
         async function fetchFeatureVideos() {
             try {
                 const API_URL = 'https://nemesis-backend-yv3w.onrender.com/api/feature-videos';
@@ -303,13 +304,23 @@
                 const data = await response.json();
                 // Expecting { videos: [{ name: "Aimbot.mp4", url: "..." }, ...] }
                 if (data.videos && Array.isArray(data.videos)) {
-                    data.videos.forEach(video => {
-                        // Extract feature name without .mp4 extension
-                        const featureName = video.name.replace('.mp4', '').replace(/_/g, ' ');
-                        featureVideos[featureName] = video.url;
+                    data.videos.forEach(item => {
+                        const fileName = item.name.toLowerCase();
+                        
+                        // Check if it's an ESP PNG image
+                        if (fileName === 'esp.png') {
+                            espImages.withESP = item.url;
+                        } else if (fileName === 'no_esp.png' || fileName === 'no-esp.png' || fileName === 'noesp.png') {
+                            espImages.noESP = item.url;
+                        } else if (fileName.endsWith('.mp4')) {
+                            // Extract feature name without .mp4 extension
+                            const featureName = item.name.replace('.mp4', '').replace(/_/g, ' ');
+                            featureVideos[featureName] = item.url;
+                        }
                     });
                 }
                 console.log('[Feature Videos] Loaded from Discord:', featureVideos);
+                console.log('[ESP Images] Loaded from Discord:', espImages);
             } catch (error) {
                 console.error('[Feature Videos] Failed to fetch:', error);
             }
@@ -379,13 +390,17 @@
 
             // ESP Features: show seamless before/after slider
             if (feature.name === "ESP Features") {
+                // Use Discord URLs if available, otherwise fallback to local
+                const noEspUrl = espImages.noESP || '../Features/NO_ESP.png';
+                const espUrl = espImages.withESP || '../Features/ESP.png';
+                
                 display.innerHTML = `
                     <h1 class="feature-title">${feature.title}</h1>
                     <p class="feature-description">${feature.description}</p>
                     <div class="feature-image" style="background:#111;overflow:visible;">
                         <div id="esp-slider-container" style="position:relative;width:100%;max-width:800px;height:500px;margin:0 auto;user-select:none;">
-                            <img src="../Features/NO_ESP.png" alt="No ESP" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;">
-                            <img id="esp-slider-overlay" src="../Features/ESP.png" alt="ESP" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;clip-path:inset(0 50% 0 0);pointer-events:none;">
+                            <img src="${noEspUrl}" alt="No ESP" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;">
+                            <img id="esp-slider-overlay" src="${espUrl}" alt="ESP" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;clip-path:inset(0 50% 0 0);pointer-events:none;">
                             <div id="esp-slider-handle" style="position:absolute;top:0;left:calc(50% - 10px);width:20px;height:100%;background:transparent;cursor:ew-resize;z-index:2;display:flex;align-items:center;justify-content:center;">
                                 <div style="width:4px;height:100%;background:#fff;border-radius:2px;"></div>
                                 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;background:#fff;border-radius:50%;box-shadow:0 1px 6px 0 rgba(0,0,0,0.12);border:2px solid #e8bbf9;display:flex;align-items:center;justify-content:center;">
