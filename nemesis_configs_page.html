@@ -161,37 +161,84 @@
         }
 
         .config-card {
-            background: #0a0a0a;
+            background: linear-gradient(165deg, 
+                rgba(232, 187, 249, 0.05) 0%,
+                rgba(10, 10, 10, 0.95) 100%
+            );
             border: 1px solid rgba(232, 187, 249, 0.15);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             display: flex;
             flex-direction: column;
             animation: fadeInUp 0.5s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        .config-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(232, 187, 249, 0.3) 50%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .config-card:hover {
-            border-color: rgba(232, 187, 249, 0.4);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(232, 187, 249, 0.2);
+            border-color: rgba(232, 187, 249, 0.3);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 
+                0 10px 40px rgba(232, 187, 249, 0.1),
+                0 0 20px rgba(232, 187, 249, 0.05);
+        }
+
+        .config-card:hover::before {
+            opacity: 1;
         }
 
         .config-header {
-            background: linear-gradient(135deg, rgba(232, 187, 249, 0.1), rgba(195, 142, 225, 0.05));
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(232, 187, 249, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(232, 187, 249, 0.08) 0%,
+                rgba(195, 142, 225, 0.03) 100%
+            );
+            padding: 1.8rem;
+            border-bottom: 1px solid rgba(232, 187, 249, 0.08);
+            position: relative;
+        }
+
+        .config-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(232, 187, 249, 0.2) 50%,
+                transparent 100%
+            );
         }
 
         .config-name {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: #E8BBF9;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
             word-break: break-word;
             font-family: 'Courier New', monospace;
             letter-spacing: 0.5px;
+            text-shadow: 0 0 15px rgba(232, 187, 249, 0.3);
+            position: relative;
+            display: inline-block;
         }
 
         .config-info {
@@ -229,38 +276,71 @@
         }
 
         .config-body {
-            padding: 1.5rem;
+            padding: 1.8rem;
             flex: 1;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(180deg, 
+                rgba(232, 187, 249, 0.02) 0%,
+                rgba(10, 10, 10, 0) 100%
+            );
         }
 
         .config-details {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1.5rem;
         }
 
         .config-size {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0.4rem 0.8rem;
+            background: rgba(232, 187, 249, 0.05);
+            border: 1px solid rgba(232, 187, 249, 0.1);
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .config-date {
             font-size: 0.85rem;
-            color: rgba(232, 187, 249, 0.5);
-            margin-bottom: 1rem;
+            color: rgba(232, 187, 249, 0.6);
+            padding: 0.4rem 0.8rem;
+            background: rgba(232, 187, 249, 0.05);
+            border: 1px solid rgba(232, 187, 249, 0.1);
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .config-code-container {
-            background: #181818;
-            border: 1px solid rgba(232, 187, 249, 0.1);
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            background: linear-gradient(165deg,
+                rgba(24, 24, 24, 0.8) 0%,
+                rgba(24, 24, 24, 0.95) 100%
+            );
+            border: 1px solid rgba(232, 187, 249, 0.12);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
             max-height: 250px;
             overflow-y: auto;
             position: relative;
             flex: 1;
+            backdrop-filter: blur(5px);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 0 20px rgba(232, 187, 249, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .config-code-container:hover {
+            border-color: rgba(232, 187, 249, 0.2);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 0 30px rgba(232, 187, 249, 0.1);
         }
 
         .config-code-container.loading::after {
@@ -311,34 +391,59 @@
 
         .download-btn, .copy-code-btn, .copy-link-btn {
             flex: 1;
-            background: transparent;
+            background: rgba(232, 187, 249, 0.03);
             border: 1px solid rgba(232, 187, 249, 0.3);
             color: rgba(232, 187, 249, 0.8);
-            padding: 0.75rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            padding: 0.8rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
             text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.3rem;
+            font-family: 'Outfit', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::before, .copy-code-btn::before, .copy-link-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(232, 187, 249, 0.4) 50%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .download-btn:hover, .copy-code-btn:hover, .copy-link-btn:hover {
             background: rgba(232, 187, 249, 0.1);
             border-color: rgba(232, 187, 249, 0.6);
             color: #E8BBF9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(232, 187, 249, 0.15);
+        }
+
+        .download-btn:hover::before, .copy-code-btn:hover::before, .copy-link-btn:hover::before {
+            opacity: 1;
         }
 
         .copy-code-btn.copied, .copy-link-btn.copied {
             background: rgba(0, 255, 136, 0.1);
             border-color: rgba(0, 255, 136, 0.4);
             color: rgba(0, 255, 136, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.15);
         }
 
         /* Loading State */
@@ -391,27 +496,55 @@
         }
 
         .load-more-btn {
-            background: transparent;
+            background: rgba(232, 187, 249, 0.03);
             border: 1px solid rgba(232, 187, 249, 0.3);
             color: rgba(232, 187, 249, 0.8);
-            padding: 1rem 2.5rem;
+            padding: 1.2rem 3rem;
             font-size: 0.9rem;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .load-more-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(232, 187, 249, 0.4) 50%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .load-more-btn:hover {
             background: rgba(232, 187, 249, 0.1);
             border-color: rgba(232, 187, 249, 0.6);
             color: #E8BBF9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(232, 187, 249, 0.2);
+        }
+
+        .load-more-btn:hover::before {
+            opacity: 1;
         }
 
         .load-more-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         @keyframes fadeInUp {
@@ -423,6 +556,84 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0a0a0a;
+            border: 1px solid rgba(232, 187, 249, 0.2);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(232, 187, 249, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(232, 187, 249, 0.1);
+            background: linear-gradient(135deg, rgba(232, 187, 249, 0.1), rgba(195, 142, 225, 0.05));
+        }
+
+        .modal-title {
+            font-family: 'Courier New', monospace;
+            color: #E8BBF9;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #E8BBF9;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-content {
+            background: #181818;
+            border: 1px solid rgba(232, 187, 249, 0.1);
+            border-radius: 6px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #e8bbf9;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         /* Responsive */
@@ -462,6 +673,19 @@
             <a href="index.html#buy" class="nav-btn">Buy</a>
         </div>
     </nav>
+
+    <!-- Modal for viewing configs -->
+    <div class="modal-overlay" id="configModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Config Viewer</div>
+                <button class="modal-close" onclick="closeConfigModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <pre class="modal-content" id="modalContent"></pre>
+            </div>
+        </div>
+    </div>
 
     <div class="configs-container">
         <div class="page-header">
@@ -608,13 +832,13 @@
                         </div>
                         <div class="config-footer">
                             <a href="${escapeHtml(downloadUrl)}" download class="download-btn" title="Download config file">
-                                ⬇
+                                DOWNLOAD
                             </a>
                             <button class="copy-code-btn" onclick="copyConfigCode('code-${cardId}', this)" title="Copy config code">
-                                📋 Code
+                                COPY
                             </button>
-                            <button class="copy-link-btn" onclick="copyToClipboard('${escapeHtml(downloadUrl)}', this)" title="Copy download link">
-                                🔗 Link
+                            <button class="copy-link-btn" onclick="viewConfig('${escapeHtml(downloadUrl)}', '${escapeHtml(filename)}')" title="View config in modal">
+                                VIEW
                             </button>
                         </div>
                     </div>
@@ -642,17 +866,48 @@
             });
         }
 
-        function copyToClipboard(url, btn) {
-            navigator.clipboard.writeText(url).then(() => {
-                const originalText = btn.textContent;
-                btn.textContent = '✓ Link';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.classList.remove('copied');
-                }, 2000);
-            });
+        async function viewConfig(url, filename) {
+            const modal = document.getElementById('configModal');
+            const modalContent = document.getElementById('modalContent');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            // Show modal with loading state
+            modal.style.display = 'block';
+            modalContent.textContent = 'Loading config...';
+            modalTitle.textContent = filename;
+
+            try {
+                const content = await fetchConfigContent(url);
+                if (content) {
+                    modalContent.textContent = content;
+                } else {
+                    modalContent.textContent = 'Failed to load config content';
+                }
+            } catch (error) {
+                modalContent.textContent = 'Error loading config content';
+                console.error('Error viewing config:', error);
+            }
         }
+
+        function closeConfigModal() {
+            const modal = document.getElementById('configModal');
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('configModal');
+            if (event.target === modal) {
+                closeConfigModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeConfigModal();
+            }
+        });
 
         function displayConfigs() {
             const grid = document.getElementById('configs-grid');
