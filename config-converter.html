@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nemesis Config Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 20% 20%, rgba(232,187,249,0.12) 0%, rgba(195,142,225,0.05) 25%, rgba(0,0,0,0) 55%),
+                        radial-gradient(circle at 80% 60%, rgba(142,87,181,0.18) 0%, rgba(142,87,181,0.05) 35%, rgba(0,0,0,0) 70%),
+                        linear-gradient(180deg, #050507 0%, #07070b 40%, #06060a 70%, #040406 100%);
+            background-attachment: fixed;
+            color: white;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(232, 187, 249, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.5px;
+        }
+
+        .converter-section {
+            background: #101014;
+            border: 1.5px solid rgba(232, 187, 249, 0.13);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 3px 18px 0 rgba(0,0,0,0.35), 0 2px 8px 0 rgba(232,187,249,0.07);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #E8BBF9;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(232, 187, 249, 0.3);
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(232, 187, 249, 0.02);
+        }
+
+        .upload-area:hover {
+            border-color: rgba(232, 187, 249, 0.5);
+            background: rgba(232, 187, 249, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: #E8BBF9;
+            background: rgba(232, 187, 249, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #E8BBF9;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .cheat-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .cheat-option {
+            background: rgba(232, 187, 249, 0.05);
+            border: 1px solid rgba(232, 187, 249, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cheat-option:hover {
+            background: rgba(232, 187, 249, 0.1);
+            border-color: rgba(232, 187, 249, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .cheat-option.selected {
+            background: rgba(232, 187, 249, 0.15);
+            border-color: #E8BBF9;
+        }
+
+        .cheat-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #E8BBF9;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #E8BBF9, #C38EE1, #8E57B5);
+            border: none;
+            color: #000000;
+            padding: 16px 40px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(142, 87, 181, 0.4);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(142, 87, 181, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            color: rgba(0, 255, 136, 0.9);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .alert-error {
+            background: rgba(255, 68, 68, 0.1);
+            color: rgba(255, 68, 68, 0.9);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
+        .alert-info {
+            background: rgba(232, 187, 249, 0.1);
+            color: rgba(232, 187, 249, 0.9);
+            border: 1px solid rgba(232, 187, 249, 0.3);
+        }
+
+        .info-section {
+            margin-top: 40px;
+        }
+
+        .info-card {
+            background: rgba(232, 187, 249, 0.05);
+            border: 1px solid rgba(232, 187, 249, 0.15);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #E8BBF9;
+            margin-bottom: 15px;
+        }
+
+        .info-text {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: #E8BBF9;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #E8BBF9;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #F3E6FB;
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .converter-section {
+                padding: 30px 20px;
+            }
+
+            .upload-area {
+                padding: 40px 20px;
+            }
+
+            .cheat-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+        
+        <div class="header">
+            <h1 class="title">Config Converter</h1>
+            <p class="subtitle">Convert configs from other cheats to Nemesis format</p>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3 class="info-title">Matrixhub Config Decoding Reference</h3>
+                <div class="info-text">
+                    <strong>Field Mapping:</strong><br>
+                    Each toggle in Matrixhub .mcf configs is controlled by a specific field index and a unique ON value (not always 1.0).<br>
+                    <br>
+                    <strong>Visuals Toggles:</strong><br>
+                    <ul>
+                        <li>ESP Box: Field 19 = <code>1.401298464324817e-45</code></li>
+                        <li>ESP Box FilledRect: Field 51 = <code>1.401298464324817e-45</code></li>
+                        <li>ESP Snap Line: Field 32 = <code>9.183549615799121e-41</code></li>
+                        <li>ESP Distance: Field 32 = <code>2.350988701644575e-38</code></li>
+                        <li>ESP Name: Field 32 = <code>3.587324068671532e-43</code></li>
+                        <li>All Three (Snap/Dist/Name): Field 32 = <code>2.3694275473575467e-38</code></li>
+                        <li>ESP Health: Field 34 = <code>1.401298464324817e-45</code></li>
+                        <li>ESP Check Team: Field 34 = <code>3.587324068671532e-43</code></li>
+                        <li>ESP Health Check: Field 51 = <code>3.587324068671532e-43</code></li>
+                        <li>ESP Ignore State Dead: Field 61 = <code>9.183549615799121e-41</code></li>
+                        <li>ESP Ignore State Falling: Field 61 = <code>3.587324068671532e-43</code></li>
+                        <li>ESP Skip NPC: Field 38 = <code>1.401298464324817e-45</code></li>
+                    </ul>
+                    <em>For toggles that share a field, use the specific ON value for the feature you want, or the combined value for all three.</em>
+                    <br><br>
+                    <strong>Aimbot Toggles:</strong><br>
+                    <ul>
+                        <li>Fields 0–18 control aimbot features. ON values are not always 1.0; use values from real configs (e.g., 1.0, 69.0, etc.).</li>
+                        <li>Example: Field 0 (Aimbot Enabled) = <code>1.0000001192092896</code></li>
+                    </ul>
+                    <br>
+                    <strong>Default Values:</strong><br>
+                    The default config uses specific float values for many fields, not just 0 or 1. Always reference a real default config for accurate OFF values.
+                </div>
+            </div>
+        </div>
+
+        <div class="converter-section">
+            <div id="alertContainer"></div>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drop your config file here or click to browse</div>
+                <div class="upload-subtext">Supports .ini, .json, .cfg, .txt, and <b>.mcf</b> files</div>
+                <input type="file" id="fileInput" accept=".ini,.json,.cfg,.txt,.mcf">
+            </div>
+            <button class="btn" id="convertBtn" disabled>Convert to Nemesis Format</button>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3 class="info-title">Supported Features</h3>
+                <ul class="feature-list">
+                    <li>Aimbot settings (FOV, smoothing, prediction)</li>
+                    <li>Silent aim configuration</li>
+                    <li>ESP settings (boxes, names, health, distance)</li>
+                    <li>Movement modifications (speed, flight, jump)</li>
+                    <li>Combat features (rapid fire, auto stomp)</li>
+                    <li>Visual customization (chams, fog, colors)</li>
+                    <li>Keybind mapping</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3 class="info-title">How It Works</h3>
+                <p class="info-text">
+                    The converter analyzes your existing config file and maps compatible features to Nemesis settings. 
+                    Values are automatically scaled to match Nemesis limits. Features unique to other cheats will be 
+                    converted to the closest Nemesis equivalent, while unsupported features will be noted in the conversion log.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h3 class="info-title">Value Ranges</h3>
+                <p class="info-text">
+                    <strong>FOV:</strong> 10-1000 units<br>
+                    <strong>Smoothing:</strong> 5-50 units<br>
+                    <strong>Prediction:</strong> -10 to 15 units<br>
+                    <strong>Movement Speed:</strong> 1-750 units<br>
+                    <strong>Hitchance:</strong> 1-100%<br>
+                    <strong>ESP Range:</strong> Up to 1000 studs
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nemesisTemplate = {
+            combat: {
+                aimbot: {
+                    enabled: false,
+                    fall_value: 0.0,
+                    fov: {
+                        color: [1.0, 1.0, 1.0, 1.0],
+                        deadzone: false,
+                        deadzone_fov: 50.0,
+                        draw_fov: false,
+                        sides: 16,
+                        size: 100.0,
+                        use_fov: false
+                    },
+                    hit_parts: [0, 0, 0, 0, 0],
+                    jump_offset: false,
+                    jump_value: 0.0,
+                    keybind: { key: 0, type: 1 },
+                    mouse_sensitivity: 1.0,
+                    predictions: false,
+                    predictions_x: 5.0,
+                    predictions_y: 5.0,
+                    smoothing: false,
+                    smoothing_x: 5.0,
+                    smoothing_y: 5.0,
+                    sticky_aim: false,
+                    type: 0
+                },
+                flags: [0, 0, 0, 0, 0, 0, 0],
+                orbit: { enabled: false, keybind: { key: 0, type: 1 } },
+                silent: {
+                    enabled: false,
+                    fov: {
+                        color: [1.0, 1.0, 1.0, 1.0],
+                        draw_fov: false,
+                        sides: 16,
+                        size: 10.0,
+                        use_fov: false
+                    },
+                    hitchance: 1,
+                    keybind: { key: 0, type: 1 },
+                    prediction: false,
+                    prediction_x: -10.0,
+                    prediction_y: -10.0,
+                    type: 0
+                },
+                triggerbot: { enabled: false, keybind: { key: 0, type: 1 } }
+            },
+            misc: {
+                combat: {
+                    anti_stomp: false,
+                    auto_armor: false,
+                    auto_stomp: { enabled: false, keybind: { key: 0, type: 1 } },
+                    rapid_fire: false
+                },
+                movement: {
+                    flight: { enabled: false, keybind: { key: 0, type: 1 }, type: 0, value: 1.0 },
+                    hip_height: { enabled: false, value: 16.0 },
+                    jump_power: { enabled: false, keybind: { key: 0, type: 1 }, value: 1.0 },
+                    speed: { enabled: false, keybind: { key: 0, type: 1 }, type: 0, value: 1.0 },
+                    void_hide: { enabled: false, keybind: { key: 0, type: 1 } }
+                },
+                ui: {
+                    keybinds: false,
+                    menu_keybind: { key: 45, type: 0 },
+                    notifications: false,
+                    playerlist: false,
+                    streamproof: false,
+                    vsync: false,
+                    watermark: false
+                }
+            },
+            ui: { accent_color: [1.0, 1.0, 1.0, 1.0] },
+            visuals: {
+                esp: {
+                    boxes: {
+                        color: [1.0, 1.0, 1.0, 1.0],
+                        enabled: false,
+                        fill_color: [1.0, 1.0, 1.0, 0.3],
+                        type: 0
+                    },
+                    chams: { color: [1.0, 1.0, 1.0, 0.3], enabled: false },
+                    distance: { color: [1.0, 1.0, 1.0, 1.0], enabled: false },
+                    enabled: false,
+                    flags: [0, 0, 0, 0, 0, 0, 0],
+                    glow_color: [1.0, 1.0, 1.0, 1.0],
+                    health_threshold: 1.0,
+                    healthbar: { color: [1.0, 1.0, 1.0, 1.0], enabled: false },
+                    name: { color: [1.0, 1.0, 1.0, 1.0], enabled: false, type: 0 },
+                    oof_arrows: { color: [1.0, 1.0, 1.0, 1.0], enabled: false },
+                    range: 1000.0,
+                    skeletons: { color: [1.0, 1.0, 1.0, 1.0], enabled: false },
+                    snapline: { color: [1.0, 1.0, 1.0, 1.0], enabled: false },
+                    tool: { color: [1.0, 1.0, 1.0, 1.0], enabled: false }
+                },
+                world: {
+                    fog: {
+                        color: [1.0, 1.0, 1.0, 1.0],
+                        enabled: false,
+                        end: 0,
+                        start: 0
+                    }
+                }
+            }
+        };
+
+        const limits = {
+            aimbot_fov: { min: 10, max: 1000 },
+            smoothing: { min: 5, max: 50 },
+            prediction: { min: -10, max: 15 },
+            movement: { min: 1, max: 750 },
+            hitchance: { min: 1, max: 100 },
+            esp_range: { min: 0, max: 1000 },
+            fog: { min: 0, max: 500 }
+        };
+
+        let uploadedFile = null;
+        let uploadedData = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const convertBtn = document.getElementById('convertBtn');
+        const alertContainer = document.getElementById('alertContainer');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            const validExtensions = ['.ini', '.json', '.cfg', '.txt', '.mcf'];
+            const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            
+            if (!validExtensions.includes(fileExt)) {
+                showAlert('Invalid file type. Please upload a .ini, .json, .cfg, .txt, or .mcf file.', 'error');
+                return;
+            }
+
+            uploadedFile = file;
+            if (fileExt === '.mcf') {
+                showAlert('Matrixhub .mcf file detected. Decoding with local Python backend...', 'info');
+                convertBtn.disabled = false;
+                uploadArea.querySelector('.upload-text').textContent = `File loaded: ${file.name}`;
+                uploadArea.querySelector('.upload-icon').textContent = '✓';
+                // Immediately POST to backend and store result as uploadedData
+                const formData = new FormData();
+                formData.append('file', file);
+                fetch('http://localhost:5000/decode_mcf', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Backend decode failed');
+                    return response.json();
+                })
+                .then(json => {
+                    uploadedData = json;
+                    // Show a debug alert with the decoded JSON (first 20 keys)
+                    const keys = Object.keys(json);
+                    const preview = keys.slice(0, 20).map(k => `${k}: ${JSON.stringify(json[k])}`).join('<br>');
+                    showAlert('File decoded! Preview:<br>' + preview + '<br>Click Convert to get Nemesis config.', 'success');
+                })
+                .catch(err => {
+                    showAlert('Failed to decode .mcf: ' + err.message, 'error');
+                    uploadedData = null;
+                    convertBtn.disabled = true;
+                });
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    uploadedData = parseConfig(content);
+                    showAlert(`File "${file.name}" loaded successfully! Click Convert to proceed.`, 'success');
+                    convertBtn.disabled = false;
+                    uploadArea.querySelector('.upload-text').textContent = `File loaded: ${file.name}`;
+                    uploadArea.querySelector('.upload-icon').textContent = '✓';
+                } catch (error) {
+                    showAlert('Failed to parse config file: ' + error.message, 'error');
+                    uploadedData = null;
+                    convertBtn.disabled = true;
+                }
+            };
+            reader.onerror = () => {
+                showAlert('Failed to read file', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        function parseConfig(content) {
+            try {
+                return JSON.parse(content);
+            } catch (e) {
+                const config = {};
+                const lines = content.split('\n');
+                let currentSection = null;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line || line.startsWith(';') || line.startsWith('#')) continue;
+                    
+                    if (line.startsWith('[') && line.endsWith(']')) {
+                        currentSection = line.slice(1, -1).toLowerCase();
+                        config[currentSection] = {};
+                    } else if (currentSection && line.includes('=')) {
+                        const [key, value] = line.split('=').map(s => s.trim());
+                        config[currentSection][key.toLowerCase()] = parseValue(value);
+                    }
+                }
+                
+                return config;
+            }
+        }
+
+        function parseValue(value) {
+            if (value === 'true') return true;
+            if (value === 'false') return false;
+            if (!isNaN(value) && value !== '') return parseFloat(value);
+            return value;
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function convertConfig(sourceConfig) {
+            const output = JSON.parse(JSON.stringify(nemesisTemplate));
+            
+            const getValue = (obj, path) => {
+                return path.split('.').reduce((o, k) => (o || {})[k.toLowerCase()], obj);
+            };
+            
+            if (getValue(sourceConfig, 'aimbot.enabled') || getValue(sourceConfig, 'combat.aimbot.enabled')) {
+                output.combat.aimbot.enabled = true;
+                
+                const fov = getValue(sourceConfig, 'aimbot.fov') || getValue(sourceConfig, 'combat.aimbot.fov');
+                if (fov) output.combat.aimbot.fov.size = clamp(fov, limits.aimbot_fov.min, limits.aimbot_fov.max);
+                
+                const smoothX = getValue(sourceConfig, 'aimbot.smooth') || getValue(sourceConfig, 'aimbot.smoothing');
+                if (smoothX) {
+                    output.combat.aimbot.smoothing = true;
+                    output.combat.aimbot.smoothing_x = clamp(smoothX, limits.smoothing.min, limits.smoothing.max);
+                    output.combat.aimbot.smoothing_y = clamp(smoothX, limits.smoothing.min, limits.smoothing.max);
+                }
+                
+                const predX = getValue(sourceConfig, 'aimbot.prediction');
+                if (predX !== undefined) {
+                    output.combat.aimbot.predictions = true;
+                    output.combat.aimbot.predictions_x = clamp(predX, limits.prediction.min, limits.prediction.max);
+                    output.combat.aimbot.predictions_y = clamp(predX, limits.prediction.min, limits.prediction.max);
+                }
+                
+                if (getValue(sourceConfig, 'aimbot.sticky')) {
+                    output.combat.aimbot.sticky_aim = true;
+                }
+            }
+            
+            if (getValue(sourceConfig, 'silent.enabled') || getValue(sourceConfig, 'silentaim.enabled')) {
+                output.combat.silent.enabled = true;
+                
+                const silentFov = getValue(sourceConfig, 'silent.fov') || getValue(sourceConfig, 'silentaim.fov');
+                if (silentFov) output.combat.silent.fov.size = clamp(silentFov, limits.aimbot_fov.min, limits.aimbot_fov.max);
+                
+                const hitchance = getValue(sourceConfig, 'silent.hitchance') || getValue(sourceConfig, 'silentaim.accuracy');
+                if (hitchance) output.combat.silent.hitchance = clamp(hitchance, limits.hitchance.min, limits.hitchance.max);
+            }
+            
+            if (getValue(sourceConfig, 'esp.enabled') || getValue(sourceConfig, 'visuals.esp.enabled')) {
+                output.visuals.esp.enabled = true;
+                
+                if (getValue(sourceConfig, 'esp.boxes')) output.visuals.esp.boxes.enabled = true;
+                if (getValue(sourceConfig, 'esp.names')) output.visuals.esp.name.enabled = true;
+                if (getValue(sourceConfig, 'esp.health')) output.visuals.esp.healthbar.enabled = true;
+                if (getValue(sourceConfig, 'esp.distance')) output.visuals.esp.distance.enabled = true;
+                if (getValue(sourceConfig, 'esp.chams')) output.visuals.esp.chams.enabled = true;
+                if (getValue(sourceConfig, 'esp.skeleton')) output.visuals.esp.skeletons.enabled = true;
+                
+                const espRange = getValue(sourceConfig, 'esp.range') || getValue(sourceConfig, 'esp.maxdistance');
+                if (espRange) output.visuals.esp.range = clamp(espRange, 0, limits.esp_range.max);
+            }
+            
+            const speed = getValue(sourceConfig, 'movement.speed') || getValue(sourceConfig, 'misc.speed');
+            if (speed !== undefined && speed > 1) {
+                output.misc.movement.speed.enabled = true;
+                output.misc.movement.speed.value = clamp(speed, limits.movement.min, limits.movement.max);
+            }
+            
+            const flight = getValue(sourceConfig, 'movement.fly') || getValue(sourceConfig, 'misc.fly');
+            if (flight !== undefined && (flight === true || flight > 1)) {
+                output.misc.movement.flight.enabled = true;
+                if (typeof flight === 'number') {
+                    output.misc.movement.flight.value = clamp(flight, limits.movement.min, limits.movement.max);
+                }
+            }
+            
+            const jumpPower = getValue(sourceConfig, 'movement.jump') || getValue(sourceConfig, 'misc.jump');
+            if (jumpPower !== undefined && jumpPower > 1) {
+                output.misc.movement.jump_power.enabled = true;
+                output.misc.movement.jump_power.value = clamp(jumpPower, limits.movement.min, limits.movement.max);
+            }
+            
+            if (getValue(sourceConfig, 'combat.rapidfire') || getValue(sourceConfig, 'misc.rapidfire')) {
+                output.misc.combat.rapid_fire = true;
+            }
+            
+            if (getValue(sourceConfig, 'visuals.fog.enabled')) {
+                output.visuals.world.fog.enabled = true;
+                const fogStart = getValue(sourceConfig, 'visuals.fog.start');
+                const fogEnd = getValue(sourceConfig, 'visuals.fog.end');
+                if (fogStart) output.visuals.world.fog.start = clamp(fogStart, 0, limits.fog.max);
+                if (fogEnd) output.visuals.world.fog.end = clamp(fogEnd, 0, limits.fog.max);
+            }
+            
+            return output;
+        }
+
+        convertBtn.addEventListener('click', () => {
+            if (!uploadedData) {
+                showAlert('No config file loaded or decoded', 'error');
+                return;
+            }
+            try {
+                const converted = convertConfig(uploadedData);
+                const blob = new Blob([JSON.stringify(converted, null, 4)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `nemesis_${uploadedFile.name.replace(/\.[^/.]+$/, '')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showAlert('Config converted successfully! Download started.', 'success');
+            } catch (error) {
+                showAlert('Conversion failed: ' + error.message, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
