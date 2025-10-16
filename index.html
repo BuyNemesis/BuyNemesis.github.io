@@ -1726,8 +1726,10 @@
             
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
-                statusElement.textContent = `${status.status} ${status.text}`;
-                statusElement.className = status.color;
+                const statusEmoji = status.status; // This contains the emoji
+                const statusText = status.text;    // This contains the text (like "Online", "Offline", etc)
+                statusElement.innerHTML = `${statusEmoji} ${statusText}`;
+                statusElement.className = status.color.toLowerCase();
             }
         } catch (error) {
             console.error('Error updating status:', error);
