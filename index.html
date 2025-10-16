@@ -1726,13 +1726,16 @@
             
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
-                const statusEmoji = status.status; // This contains the emoji
-                const statusText = status.text;    // This contains the text (like "Online", "Offline", etc)
-                statusElement.innerHTML = `${statusEmoji} ${statusText}`;
+                statusElement.innerHTML = `${status.emoji} ${status.text}`;
                 statusElement.className = status.color.toLowerCase();
             }
         } catch (error) {
             console.error('Error updating status:', error);
+            const statusElement = document.getElementById('live-status');
+            if (statusElement) {
+                statusElement.innerHTML = '⚫ Status';
+                statusElement.className = '';
+            }
         }
     }
 
