@@ -640,6 +640,38 @@
             align-items: center;
             justify-content: space-between; /* brand left, links right */
         }
+        
+        .status-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        #live-status {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(232, 187, 249, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        #live-status.online {
+            border-color: rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+        }
+        
+        #live-status.offline {
+            border-color: rgba(255, 0, 0, 0.3);
+            color: #ff0000;
+        }
+        
+        #live-status.maintenance {
+            border-color: rgba(255, 255, 0, 0.3);
+            color: #ffff00;
+        }
 
         /* Keep a centered inner container available if needed elsewhere, but not used for the main banner layout */
         .nav-container {
@@ -1177,7 +1209,10 @@
 
     <!-- Nemesis content with getnight.wtf theme will be inserted here. -->
     <nav class="navbar">
-        <a href="#" class="nav-brand">nemesis</a>
+        <div class="status-wrapper">
+            <div id="live-status">⚫ Status</div>
+            <a href="#" class="nav-brand">nemesis</a>
+        </div>
         <div class="nav-links">
             <a href="nemesis_configs_page.html" class="nav-btn">Configs</a>
             <a href="#features" class="nav-btn">Features</a>
@@ -1680,10 +1715,34 @@
     </section>
 
     <script>
+    // Function to update live status
+    async function updateLiveStatus() {
+        try {
+            const response = await fetch('/api/live-status');
+            if (!response.ok) {
+                throw new Error('Failed to fetch status');
+            }
+            const status = await response.json();
+            
+            const statusElement = document.getElementById('live-status');
+            if (statusElement) {
+                statusElement.textContent = `${status.emoji} ${status.text}`;
+                statusElement.className = status.color;
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         // Initialize reviews
         updateReviews();
+        // Initialize live status
+        updateLiveStatus();
+        
+        // Set up intervals
         setInterval(updateReviews, 60000);
+        setInterval(updateLiveStatus, 30000); // Update status every 30 seconds
     });
     </script>
 
