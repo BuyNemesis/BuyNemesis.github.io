@@ -1726,7 +1726,7 @@
             
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
-                statusElement.textContent = `${status.emoji} ${status.text}`;
+                statusElement.textContent = `${status.status} ${status.text}`;
                 statusElement.className = status.color;
             }
         } catch (error) {
