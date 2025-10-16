@@ -1732,10 +1732,15 @@
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
                 statusElement.innerHTML = `${status.emoji} ${status.text}`;
-                // Make sure the status.color exists and is a valid string
-                const statusColor = (status.color && typeof status.color === 'string') ? status.color.toLowerCase() : 'gray';
+                // Enhanced status color handling
+                let statusColor = 'gray';
+                if (status.emoji === '🔵') {
+                    statusColor = 'blue';
+                } else if (status.color && typeof status.color === 'string') {
+                    statusColor = status.color.toLowerCase();
+                }
                 statusElement.className = statusColor;
-                console.log('Status update:', { emoji: status.emoji, text: status.text, color: statusColor });
+                console.log('Status update:', { emoji: status.emoji, text: status.text, color: statusColor, raw: status });
             }
         } catch (error) {
             console.error('Error updating status:', error);
