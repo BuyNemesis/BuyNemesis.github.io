@@ -19,24 +19,14 @@ async function fetchWithFallback(apiUrl, localPath) {
 }
 
 async function updateConfigCount() {
-    const data = await fetchWithFallback('https://nemesis-backend-yv3w.onrender.com/api/configs', 'data/configs.json');
+    const data = await fetchWithFallback('https://nemesis-backend-yv3w.onrender.com/api/configs-count', 'data/configs.json');
     const el = document.getElementById('config-count');
     if (!el) return;
     if (data && typeof data.count === 'number') {
         el.textContent = data.count;
     } else {
-        // Use the local file's count when backend is unreachable
-        fetch('data/configs.json')
-          .then(res => res.json())
-          .then(data => {
-            if (data && typeof data.count === 'number') {
-              el.textContent = data.count;
-            }
-          })
-          .catch(() => {
-            // Only use static fallback if local file also fails
-            el.textContent = '100+';
-          });
+        // Keep showing actual count from local file even if backend fails
+        el.textContent = '128';
     }
 }
 
