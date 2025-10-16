@@ -1732,14 +1732,17 @@
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
                 statusElement.innerHTML = `${status.emoji} ${status.text}`;
-                statusElement.className = status.color.toLowerCase();
+                // Make sure the status.color exists and is a valid string
+                const statusColor = (status.color && typeof status.color === 'string') ? status.color.toLowerCase() : 'gray';
+                statusElement.className = statusColor;
+                console.log('Status update:', { emoji: status.emoji, text: status.text, color: statusColor });
             }
         } catch (error) {
             console.error('Error updating status:', error);
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
                 statusElement.innerHTML = '⚫ Status';
-                statusElement.className = '';
+                statusElement.className = 'gray';
             }
         }
     }
