@@ -25,8 +25,18 @@ async function updateConfigCount() {
     if (data && typeof data.count === 'number') {
         el.textContent = data.count;
     } else {
-        // static default for static hosting
-        el.textContent = '100+';
+        // Use the local file's count when backend is unreachable
+        fetch('data/configs.json')
+          .then(res => res.json())
+          .then(data => {
+            if (data && typeof data.count === 'number') {
+              el.textContent = data.count;
+            }
+          })
+          .catch(() => {
+            // Only use static fallback if local file also fails
+            el.textContent = '100+';
+          });
     }
 }
 
