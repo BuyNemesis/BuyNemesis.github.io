@@ -1210,7 +1210,7 @@
     <!-- Nemesis content with getnight.wtf theme will be inserted here. -->
     <nav class="navbar">
         <div class="status-wrapper">
-            <div id="live-status">⚫ Status</div>
+            <div id="live-status"></div>
             <a href="#" class="nav-brand">nemesis</a>
         </div>
         <div class="nav-links">
@@ -1739,11 +1739,12 @@
         }
     }
 
+    // Call updateLiveStatus immediately
+    updateLiveStatus();
+    
     document.addEventListener('DOMContentLoaded', () => {
         // Initialize reviews
         updateReviews();
-        // Initialize live status
-        updateLiveStatus();
         
         // Set up intervals
         setInterval(updateReviews, 60000);
