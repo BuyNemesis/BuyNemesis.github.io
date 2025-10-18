@@ -1,4 +1,4 @@
-        
+﻿        
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1768,11 +1768,11 @@
     <!-- Load reviews script BEFORE using it -->
     <script src="reviews-new.js"></script>
 
-    <script>
+        <script>
     // Function to update live status with fallback
     async function updateLiveStatus() {
         try {
-            // Try backend first
+            // Fetch status from backend API
             const response = await fetch('https://nemesis-backend-yv3w.onrender.com/api/live-status', {
                 cache: 'no-store'
             });
@@ -1782,18 +1782,14 @@
             const status = await response.json();
             const statusElement = document.getElementById('live-status');
             
-            if (statusElement) {
-                if (status.online) {
-                    statusElement.innerHTML = '� Online';
-                    statusElement.className = 'green';
-                } else {
-                    statusElement.innerHTML = '🔴 Maintenance';
-                    statusElement.className = 'red';
-                }
+            if (statusElement && status.emoji) {
+                // Use the emoji and text from the API response
+                statusElement.innerHTML = status.emoji + ' ' + status.text;
+                statusElement.className = status.color || 'gray';
             }
         } catch (error) {
-            // Fallback to static status if backend is down
-            console.warn('Status update failed:', error);
+            // Fallback to default online status if backend is down
+            console.warn('Status update failed, using fallback:', error);
             const statusElement = document.getElementById('live-status');
             if (statusElement) {
                 statusElement.innerHTML = '🟢 Online';
