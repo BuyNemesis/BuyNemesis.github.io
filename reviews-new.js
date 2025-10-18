@@ -1,47 +1,53 @@
-// Reviews System with backend pagination and live updates
-let allReviews = [];
-let offset = 0;
-const REVIEWS_PER_PAGE = 6;
-let hasMore = true;
-let lastUpdate = 0;
-const UPDATE_INTERVAL = 30000; // 30 seconds
-
-function timeAgo(dateString) {
-    if (!dateString) return '';
+// Reviews System V2
+// Format the date in a human-readable format
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
     const now = new Date();
-    const then = new Date(dateString);
-    const seconds = Math.floor((now - then) / 1000);
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    if (isNaN(seconds)) return '';
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-    if (seconds < 2419200) return `${Math.floor(seconds / 604800)}w ago`;
-    if (seconds < 29030400) return `${Math.floor(seconds / 2419200)}mo ago`;
-    return `${Math.floor(seconds / 29030400)}y ago`;
+    if (diffDays === 0) {
+        const hours = Math.floor(diffTime / (1000 * 60 * 60));
+        if (hours === 0) {
+            const minutes = Math.floor(diffTime / (1000 * 60));
+            if (minutes === 0) return 'Just now';
+            return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        }
+        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else if (diffDays < 7) {
+        return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    } else {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
 }
 
 function createReviewCard(review) {
-    const username = review.author?.username || 'Anonymous';
-    const initials = username.substring(0, 2).toUpperCase();
-    const rating = typeof review.rating === 'number' ? review.rating : 5;
-    const stars = '★'.repeat(Math.max(0, rating)) + '☆'.repeat(Math.max(0, 5 - rating));
-    const ago = timeAgo(review.timestamp);
-    const avatar = review.author?.avatar 
-        ? `<img src="${review.author.avatar}" alt="${username}" class="avatar-img" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'avatar-initials\\'>${initials}</div>';">` 
-        : `<div class="avatar-initials">${initials}</div>`;
+    if (!review || !review.author) return '';
     
-    // Clean and sanitize the content
+    const username = review.author.username || 'Anonymous';
+    const initials = username.slice(0, 2).toUpperCase();
     const content = review.content?.trim() || 'No review message.';
+    const rating = Math.min(Math.max(0, review.rating || 0), 5);
+    const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    const date = formatDate(review.timestamp);
     
+    const avatarHtml = review.author.avatar
+        ? `<img src="${review.author.avatar}" alt="${username}" class="avatar-img" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'avatar-initials\\'>${initials}</div>';">`
+        : `<div class="avatar-initials">${initials}</div>`;
+
     return `
-        <div class="review-card" data-rating="${rating}">
+        <div class="review-card">
             <div class="review-header">
-                <div class="review-avatar">${avatar}</div>
+                <div class="review-avatar">
+                    ${avatarHtml}
+                </div>
                 <div class="review-info">
                     <h4>${username}</h4>
-                    <div class="review-date">${ago}</div>
+                    <div class="review-date">${date}</div>
                 </div>
             </div>
             <div class="review-content">${content}</div>
@@ -54,119 +60,125 @@ function createReviewCard(review) {
 }
 
 
-function updateReviewDisplay() {
+async function loadReviews() {
     const grid = document.getElementById('reviews-grid');
-    if (!grid) return;
-    
-    // Create the review cards with animation delays
-    const reviewCards = allReviews.map((review, index) => {
-        const card = createReviewCard(review);
-        return card.replace('class="review-card"', 
-            `class="review-card" style="animation-delay: ${index * 100}ms"`);
-    }).join('');
-    
-    let html = reviewCards;
-    if (hasMore) {
-        html += `
-            <div class="view-more-container">
-                <button class="view-more-btn" onclick="loadReviews(false, true)">Load More Reviews</button>
+    if (!grid) {
+        console.error('❌ Reviews grid element not found! Looking for element with id="reviews-grid"');
+        return;
+    }
+
+    console.log('🔄 Starting to load reviews...');
+
+    // Show loading state
+    grid.innerHTML = `
+        <div class="review-loading">
+            <div class="loading-spinner"></div>
+            <p>Loading reviews...</p>
+        </div>
+    `;
+
+    try {
+        const apiUrl = 'https://nemesis-backend-yv3w.onrender.com/api/reviews';
+        console.log('📡 Fetching from:', apiUrl);
+        console.log('🌐 Current page protocol:', window.location.protocol);
+        console.log('🌐 Current page origin:', window.location.origin);
+        console.log('🔍 Browser:', navigator.userAgent);
+        
+        // Add fetch options with explicit mode (without credentials to avoid CORS issues)
+        const fetchOptions = {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json'
+            }
+            // Note: NOT sending credentials to avoid CORS wildcard conflict
+        };
+        
+        console.log('🚀 Initiating fetch with options:', fetchOptions);
+        const response = await fetch(apiUrl, fetchOptions);
+        
+        console.log('📥 Response received!');
+        console.log('📊 Response status:', response.status, response.statusText);
+        console.log('📋 Response headers:', [...response.headers.entries()]);
+        console.log('✓ Response ok?', response.ok);
+        
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Data parsed successfully:', data);
+        console.log('📊 Number of reviews:', data.reviews?.length || 0);
+        
+        if (!data || !Array.isArray(data.reviews)) {
+            console.error('❌ Invalid data format:', data);
+            throw new Error('Invalid response format from server');
+        }
+
+        if (data.reviews.length === 0) {
+            console.log('ℹ️ No reviews found');
+            grid.innerHTML = `
+                <div class="review-empty">
+                    <p class="review-message">No reviews available yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const reviewsHtml = data.reviews
+            .map(review => createReviewCard(review))
+            .filter(html => html) // Remove any empty strings from invalid reviews
+            .join('');
+
+        grid.innerHTML = reviewsHtml;
+        console.log(`✅ Successfully rendered ${data.reviews.length} reviews`);
+
+    } catch (error) {
+        console.error('❌ Failed to load reviews:', error);
+        console.error('📛 Error name:', error.name);
+        console.error('💬 Error message:', error.message);
+        console.error('📚 Error stack:', error.stack);
+        console.error('🔍 Error occurred at:', new Date().toISOString());
+        
+        let errorMessage = 'Failed to load reviews.';
+        let helpText = '';
+        
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            errorMessage = 'Cannot connect to server.';
+            console.error('🚨 FETCH FAILURE - Possible causes:');
+            console.error('  1. Network is down');
+            console.error('  2. Server is not responding');
+            console.error('  3. CORS policy blocking request');
+            console.error('  4. Browser security policy');
+            console.error('  5. Mixed content (HTTP/HTTPS)');
+            console.error('  Current protocol:', window.location.protocol);
+            console.error('  Target protocol: https:');
+            
+            if (window.location.protocol === 'file:') {
+                helpText = '<br><small>⚠️ You\'re opening this page as a local file. Please use a web server (e.g., Live Server extension in VS Code) or deploy to a hosting service.</small>';
+            } else {
+                helpText = '<br><small>Check your internet connection or try again later.</small>';
+            }
+        } else if (error.message.includes('CORS')) {
+            errorMessage = 'CORS policy blocked the request.';
+            helpText = '<br><small>The server needs to allow requests from ' + window.location.origin + '</small>';
+        }
+        
+        grid.innerHTML = `
+            <div class="review-error">
+                <p class="review-message">${errorMessage}${helpText}</p>
+                <button class="retry-btn" onclick="window.loadReviews()">Try Again</button>
             </div>
         `;
     }
-    
-    grid.innerHTML = html;
-    
-    // Add animation class to trigger fade-in
-    requestAnimationFrame(() => {
-        const cards = grid.querySelectorAll('.review-card');
-        cards.forEach(card => {
-            card.classList.add('review-card-visible');
-        });
-    });
 }
 
 
-async function loadReviews(initial = false, forceRefresh = false) {
-    const grid = document.getElementById('reviews-grid');
-    
-    // Check if we need to refresh based on time
-    const now = Date.now();
-    if (!forceRefresh && !initial && now - lastUpdate < UPDATE_INTERVAL) {
-        return;
-    }
-    lastUpdate = now;
+// Expose loadReviews globally immediately (before DOMContentLoaded)
+window.loadReviews = loadReviews;
+window.updateReviews = loadReviews;
 
-    if (initial) {
-        allReviews = [];
-        offset = 0;
-        hasMore = true;
-        if (grid) grid.innerHTML = '<div class="review-loading"><div class="loading-spinner"></div><p>Loading reviews...</p></div>';
-    }
+console.log('📦 Reviews script loaded - functions exposed to window');
 
-    try {
-        // Always fetch latest reviews with no cache
-        const response = await fetch('https://nemesis-backend-yv3w.onrender.com/api/reviews?offset=0&limit=6', {
-            cache: 'no-store',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch reviews');
-        
-        const data = await response.json();
-        
-        if (!data || !Array.isArray(data.reviews)) {
-            throw new Error('Invalid reviews data format');
-        }
-
-        // Compare new reviews with existing ones
-        const hasNewReviews = initial || forceRefresh || !allReviews.length || 
-            JSON.stringify(data.reviews) !== JSON.stringify(allReviews);
-
-        if (hasNewReviews) {
-            allReviews = data.reviews;
-            hasMore = data.hasMore;
-            offset = data.reviews.length;
-
-            // Animate new reviews if not initial load
-            if (!initial && grid) {
-                grid.style.opacity = '0';
-                setTimeout(() => {
-                    updateReviewDisplay();
-                    grid.style.opacity = '1';
-                }, 200);
-            } else {
-                updateReviewDisplay();
-            }
-        }
-
-        if (allReviews.length === 0 && grid) {
-            grid.innerHTML = '<div class="review-card"><div class="review-content">No reviews yet.</div></div>';
-        }
-    } catch (error) {
-        console.error('Error fetching reviews:', error);
-        // Only show error if we have no existing reviews
-        if ((!allReviews || allReviews.length === 0) && grid) {
-            grid.innerHTML = '<div class="review-card"><div class="review-content">Failed to load reviews. Please try again later.</div></div>';
-        }
-    }
-}
-
-// Initialize reviews and set up auto-refresh
-document.addEventListener('DOMContentLoaded', () => {
-    // Add transition for smooth updates
-    const grid = document.getElementById('reviews-grid');
-    if (grid) {
-        grid.style.transition = 'opacity 0.2s ease';
-    }
-
-    // Initial load
-    loadReviews(true);
-
-    // Regular refresh every 30 seconds
-    setInterval(() => {
-        loadReviews(false, true);
-    }, UPDATE_INTERVAL);
-});
+// Note: Initialization is now handled by the main HTML script
+// to avoid race conditions with other scripts

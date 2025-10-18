@@ -44,13 +44,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        updateConfigCount();
-        updateMemberCount();
-        updateReviews();
-        setInterval(updateConfigCount, 30000);
-        setInterval(updateMemberCount, 30000);
-        setInterval(updateReviews, 60000);
-
+        // Note: Script initialization moved to bottom of page after all scripts load
+        
         // Wait a bit for reviews to load, then setup animations
         setTimeout(setupReviewAnimations, 500);
 
@@ -1644,7 +1639,6 @@
         });
     </script>
 
-    <script src="reviews-new.js"></script>
     <section id="features" class="pricing-section section-blend">
         <div class="container">
             <h2 class="section-title">What is nemesis?</h2>
@@ -1758,8 +1752,6 @@
     </section>
 
     <!-- Reviews Section -->
-        <!-- Reviews Section -->
-        <!-- Reviews Section -->
     <section class="reviews section-blend" id="reviews">
         <div class="container">
             <h2 class="section-title">What Our Users Say</h2>
@@ -1772,6 +1764,9 @@
             </div>
         </div>
     </section>
+
+    <!-- Load reviews script BEFORE using it -->
+    <script src="reviews-new.js"></script>
 
     <script>
     // Function to update live status with fallback
@@ -1810,14 +1805,8 @@
     // Call updateLiveStatus immediately
     updateLiveStatus();
     
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize reviews
-        updateReviews();
-        
-        // Set up intervals
-        setInterval(updateReviews, 60000);
-        setInterval(updateLiveStatus, 30000); // Update status every 30 seconds
-    });
+    // Update status every 30 seconds
+    setInterval(updateLiveStatus, 30000);
     </script>
 
     <style>
@@ -2194,6 +2183,46 @@
     <script src="reviews-new.js"></script>
     <script src="live-counters.js"></script>
     <script src="visit-tracker.js"></script>
+    
+    <!-- Initialize all systems after scripts load -->
+    <script>
+    // PROPER initialization with retry logic to handle race conditions
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Initializing all systems...');
+        
+        // WAIT for reviews to be available with retry logic
+        function initializeReviews() {
+            if (typeof window.loadReviews === 'function') {
+                console.log('✅ Reviews script loaded, initializing...');
+                window.loadReviews();
+                setInterval(window.loadReviews, 60000);
+            } else {
+                console.warn('⏳ Reviews script not ready, retrying in 100ms...');
+                setTimeout(initializeReviews, 100);
+            }
+        }
+
+        // Try to initialize config/member counters if they exist
+        if (typeof updateConfigCount === 'function') {
+            console.log('✅ Initializing config counter...');
+            updateConfigCount();
+            setInterval(updateConfigCount, 30000);
+        } else {
+            console.log('ℹ️ Config counter not available');
+        }
+        
+        if (typeof updateMemberCount === 'function') {
+            console.log('✅ Initializing member counter...');
+            updateMemberCount();
+            setInterval(updateMemberCount, 30000);
+        } else {
+            console.log('ℹ️ Member counter not available');
+        }
+
+        // Initialize reviews with retry logic
+        initializeReviews();
+    });
+    </script>
     
 </body>
 
