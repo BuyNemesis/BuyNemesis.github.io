@@ -1,44 +1,45 @@
-// Live counters with static fallback for GitHub Pages (no backend)
-async function fetchWithFallback(apiUrl, localPath) {
+// Live counters with reliable fallback
+async function fetchWithFallback(apiUrl, defaultValue) {
     try {
-        // Try backend first
-        const res = await fetch(apiUrl, { cache: 'no-store' });
-        if (res.ok) return res.json();
-        // fall through to local
+        const res = await fetch(apiUrl, { 
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
+        });
+        
+        if (!res.ok) throw new Error('Backend request failed');
+        const data = await res.json();
+        
+        // Verify we have a valid count
+        if (data && typeof data.count === 'number') {
+            return data;
+        }
+        throw new Error('Invalid data format');
     } catch (e) {
-        // network error or CORS - fall back to local
+        console.warn(`Counter fallback for ${apiUrl}:`, e);
+        return { count: defaultValue };
     }
-
-    try {
-        const localRes = await fetch(localPath, { cache: 'no-store' });
-        if (localRes.ok) return localRes.json();
-    } catch (e) {
-        // final fallback failed
-    }
-    return null;
 }
 
 async function updateConfigCount() {
-    const data = await fetchWithFallback('https://nemesis-backend-yv3w.onrender.com/api/configs-count', 'data/configs.json');
+    const data = await fetchWithFallback('https://nemesis-backend-yv3w.onrender.com/api/configs-count', 4);
     const el = document.getElementById('config-count');
     if (!el) return;
-    if (data && typeof data.count === 'number') {
-        el.textContent = data.count;
-    } else {
-        // Keep showing actual count from local file even if backend fails
-        el.textContent = '128';
-    }
+    
+    el.textContent = data.count.toString();
+    el.classList.add('counter-updated');
+    setTimeout(() => el.classList.remove('counter-updated'), 1000);
 }
 
 async function updateMemberCount() {
-    const data = await fetchWithFallback('https://nemesis-backend-yv3w.onrender.com/api/members', 'data/members.json');
+    const data = await fetchWithFallback('https://nemesis-backend-yv3w.onrender.com/api/members', 41);
     const el = document.getElementById('member-count');
     if (!el) return;
-    if (data && typeof data.count === 'number') {
-        el.textContent = data.count.toLocaleString();
-    } else {
-        el.textContent = '1,000+';
-    }
+    
+    el.textContent = data.count.toLocaleString();
+    el.classList.add('counter-updated');
+    setTimeout(() => el.classList.remove('counter-updated'), 1000);
 }
 
 // Initialize counters

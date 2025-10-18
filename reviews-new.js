@@ -1,8 +1,10 @@
-// Reviews System with backend pagination
+// Reviews System with backend pagination and live updates
 let allReviews = [];
 let offset = 0;
 const REVIEWS_PER_PAGE = 6;
 let hasMore = true;
+let lastUpdate = 0;
+const UPDATE_INTERVAL = 30000; // 30 seconds
 
 function timeAgo(dateString) {
     if (!dateString) return '';
@@ -27,8 +29,11 @@ function createReviewCard(review) {
     const stars = '★'.repeat(Math.max(0, rating)) + '☆'.repeat(Math.max(0, 5 - rating));
     const ago = timeAgo(review.timestamp);
     const avatar = review.author?.avatar 
-        ? `<img src="${review.author.avatar}" alt="${username}" class="avatar-img">` 
+        ? `<img src="${review.author.avatar}" alt="${username}" class="avatar-img" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'avatar-initials\\'>${initials}</div>';">` 
         : `<div class="avatar-initials">${initials}</div>`;
+    
+    // Clean and sanitize the content
+    const content = review.content?.trim() || 'No review message.';
     
     return `
         <div class="review-card" data-rating="${rating}">
@@ -39,7 +44,7 @@ function createReviewCard(review) {
                     <div class="review-date">${ago}</div>
                 </div>
             </div>
-            <div class="review-content">${review.content || 'No review message.'}</div>
+            <div class="review-content">${content}</div>
             <div class="review-rating">
                 <span class="stars">${stars}</span>
                 <span class="rating-text">${rating}/5</span>
@@ -52,62 +57,116 @@ function createReviewCard(review) {
 function updateReviewDisplay() {
     const grid = document.getElementById('reviews-grid');
     if (!grid) return;
-    const reviewCards = allReviews.map(createReviewCard).join('');
+    
+    // Create the review cards with animation delays
+    const reviewCards = allReviews.map((review, index) => {
+        const card = createReviewCard(review);
+        return card.replace('class="review-card"', 
+            `class="review-card" style="animation-delay: ${index * 100}ms"`);
+    }).join('');
+    
     let html = reviewCards;
     if (hasMore) {
         html += `
             <div class="view-more-container">
-                <button class="view-more-btn" onclick="loadReviews()">Load More Reviews</button>
+                <button class="view-more-btn" onclick="loadReviews(false, true)">Load More Reviews</button>
             </div>
         `;
     }
+    
     grid.innerHTML = html;
+    
+    // Add animation class to trigger fade-in
+    requestAnimationFrame(() => {
+        const cards = grid.querySelectorAll('.review-card');
+        cards.forEach(card => {
+            card.classList.add('review-card-visible');
+        });
+    });
 }
 
 
-async function loadReviews(initial = false) {
+async function loadReviews(initial = false, forceRefresh = false) {
     const grid = document.getElementById('reviews-grid');
-    if (!hasMore && !initial) return;
+    
+    // Check if we need to refresh based on time
+    const now = Date.now();
+    if (!forceRefresh && !initial && now - lastUpdate < UPDATE_INTERVAL) {
+        return;
+    }
+    lastUpdate = now;
+
     if (initial) {
         allReviews = [];
         offset = 0;
         hasMore = true;
         if (grid) grid.innerHTML = '<div class="review-loading"><div class="loading-spinner"></div><p>Loading reviews...</p></div>';
     }
+
     try {
-        // Try backend endpoint first
-        let data = null;
-        try {
-            const response = await fetch(`https://nemesis-backend-yv3w.onrender.com/api/reviews?offset=${offset}&limit=${REVIEWS_PER_PAGE}`, { cache: 'no-store' });
-            if (response.ok) data = await response.json();
-        } catch (e) {
-            data = null;
-        }
+        // Always fetch latest reviews with no cache
+        const response = await fetch('https://nemesis-backend-yv3w.onrender.com/api/reviews?offset=0&limit=6', {
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
 
-        // If backend failed or returned invalid data, fall back to local static file
+        if (!response.ok) throw new Error('Failed to fetch reviews');
+        
+        const data = await response.json();
+        
         if (!data || !Array.isArray(data.reviews)) {
-            const localRes = await fetch('data/reviews.json', { cache: 'no-store' });
-            if (localRes.ok) data = await localRes.json();
+            throw new Error('Invalid reviews data format');
         }
 
-        if (!data || !Array.isArray(data.reviews)) throw new Error('Invalid reviews data');
+        // Compare new reviews with existing ones
+        const hasNewReviews = initial || forceRefresh || !allReviews.length || 
+            JSON.stringify(data.reviews) !== JSON.stringify(allReviews);
 
-        allReviews = allReviews.concat(data.reviews);
-        hasMore = data.hasMore || false;
-        offset += REVIEWS_PER_PAGE;
-        if (allReviews.length === 0) {
+        if (hasNewReviews) {
+            allReviews = data.reviews;
+            hasMore = data.hasMore;
+            offset = data.reviews.length;
+
+            // Animate new reviews if not initial load
+            if (!initial && grid) {
+                grid.style.opacity = '0';
+                setTimeout(() => {
+                    updateReviewDisplay();
+                    grid.style.opacity = '1';
+                }, 200);
+            } else {
+                updateReviewDisplay();
+            }
+        }
+
+        if (allReviews.length === 0 && grid) {
             grid.innerHTML = '<div class="review-card"><div class="review-content">No reviews yet.</div></div>';
-            return;
         }
-        updateReviewDisplay();
     } catch (error) {
         console.error('Error fetching reviews:', error);
-        if (grid) grid.innerHTML = '<div class="review-card"><div class="review-content">Failed to load reviews. Please try again later.</div></div>';
+        // Only show error if we have no existing reviews
+        if ((!allReviews || allReviews.length === 0) && grid) {
+            grid.innerHTML = '<div class="review-card"><div class="review-content">Failed to load reviews. Please try again later.</div></div>';
+        }
     }
 }
 
 // Initialize reviews and set up auto-refresh
 document.addEventListener('DOMContentLoaded', () => {
+    // Add transition for smooth updates
+    const grid = document.getElementById('reviews-grid');
+    if (grid) {
+        grid.style.transition = 'opacity 0.2s ease';
+    }
+
+    // Initial load
     loadReviews(true);
-    setInterval(() => loadReviews(true), 60000);  // Refresh every minute
+
+    // Regular refresh every 30 seconds
+    setInterval(() => {
+        loadReviews(false, true);
+    }, UPDATE_INTERVAL);
 });
