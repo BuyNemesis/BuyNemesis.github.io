@@ -305,18 +305,23 @@
                 const data = await response.json();
                 // Expecting { videos: [{ name: "Aimbot.mp4", url: "..." }, ...] }
                 if (data.videos && Array.isArray(data.videos)) {
+                    console.log('Received videos data:', data.videos);
                     data.videos.forEach(item => {
                         const fileName = item.name.toLowerCase();
+                        console.log(`Processing file: ${fileName}, URL: ${item.url}`);
                         
                         // Check if it's an ESP PNG image
                         if (fileName === 'esp.png') {
                             espImages.withESP = item.url;
+                            console.log('Set ESP image:', item.url);
                         } else if (fileName === 'no_esp.png' || fileName === 'no-esp.png' || fileName === 'noesp.png') {
                             espImages.noESP = item.url;
+                            console.log('Set No-ESP image:', item.url);
                         } else if (fileName.endsWith('.mp4')) {
                             // Extract feature name without .mp4 extension
                             const featureName = item.name.replace('.mp4', '').replace(/_/g, ' ');
                             featureVideos[featureName] = item.url;
+                            console.log(`Set video for ${featureName}:`, item.url);
                         }
                     });
                 }
@@ -324,6 +329,11 @@
                 console.log('[ESP Images] Loaded from Discord:', espImages);
             } catch (error) {
                 console.error('[Feature Videos] Failed to fetch:', error);
+                console.error('[Feature Videos] Full error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    url: API_URL
+                });
             }
         }
         
