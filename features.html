@@ -308,20 +308,23 @@
                     console.log('Received videos data:', data.videos);
                     data.videos.forEach(item => {
                         const fileName = item.name.toLowerCase();
-                        console.log(`Processing file: ${fileName}, URL: ${item.url}`);
+                        
+                        // Remove expiration parameters from Discord CDN URLs
+                        const cleanUrl = item.url.split('?')[0];
+                        console.log(`Processing file: ${fileName} with clean URL: ${cleanUrl}`);
                         
                         // Check if it's an ESP PNG image
                         if (fileName === 'esp.png') {
-                            espImages.withESP = item.url;
-                            console.log('Set ESP image:', item.url);
+                            espImages.withESP = cleanUrl;
+                            console.log('Set ESP image:', cleanUrl);
                         } else if (fileName === 'no_esp.png' || fileName === 'no-esp.png' || fileName === 'noesp.png') {
-                            espImages.noESP = item.url;
-                            console.log('Set No-ESP image:', item.url);
+                            espImages.noESP = cleanUrl;
+                            console.log('Set No-ESP image:', cleanUrl);
                         } else if (fileName.endsWith('.mp4')) {
                             // Extract feature name without .mp4 extension
                             const featureName = item.name.replace('.mp4', '').replace(/_/g, ' ');
-                            featureVideos[featureName] = item.url;
-                            console.log(`Set video for ${featureName}:`, item.url);
+                            featureVideos[featureName] = cleanUrl;
+                            console.log(`Set video for ${featureName}:`, cleanUrl);
                         }
                     });
                 }
@@ -520,9 +523,23 @@
                 });
                 video.addEventListener('error', (e) => {
                     console.warn('[Feature Video] Failed to load', videoFile, e);
+                    console.warn('[Feature Video] Error details:', {
+                        src: video.src,
+                        error: video.error,
+                        networkState: video.networkState,
+                        readyState: video.readyState
+                    });
                     video.style.display = 'none';
-                    fallback.innerHTML = `No Preview Video Found<br><span style=\"font-size: 0.8rem; opacity: 0.6;\">Feature: ${feature.name}</span>`;
+                    fallback.innerHTML = `Video temporarily unavailable<br><span style=\"font-size: 0.8rem; opacity: 0.6;\">Feature: ${feature.name}</span>`;
                     fallback.style.display = 'block';
+                    
+                    // Try to reload the video without cache
+                    if (videoFile.includes('cdn.discordapp.com')) {
+                        setTimeout(() => {
+                            console.log('[Feature Video] Retrying video load without cache...');
+                            video.src = videoFile.split('?')[0] + '?t=' + Date.now();
+                        }, 1000);
+                    }
                 });
                 // Force reload on tab switch
                 video.load();
@@ -568,11 +585,21 @@
 
         // Initialize: fetch videos from Discord and render features
         async function initializeFeatures() {
-            await fetchFeatureVideos();
+            // Always render the feature list first
             renderFeatureList();
             showFeature(0);
+            
+            // Then fetch videos asynchronously
+            try {
+                await fetchFeatureVideos();
+                // Refresh the current feature to show the video if it's loaded
+                showFeature(currentFeatureIndex);
+            } catch (error) {
+                console.error('Failed to load feature videos, falling back to placeholders:', error);
+            }
         }
         
+        // Start initialization immediately
         initializeFeatures();
     </script>
     
